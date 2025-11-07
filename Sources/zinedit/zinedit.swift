@@ -9,14 +9,29 @@ import PhotosUI
 // Users can add text, add images from Photos, drag, pinch-to-zoom, and rotate.
 // Supports drag & drop of images/text, simple z-order controls, and export.
 
-struct EditorCanvasView: View {
+public struct EditorCanvasView: View {
+    @Binding private var layers: [EditorLayer]
+    private let config: EditorConfig
+    private let onExport: ((UIImage) -> Void)?
+    private let onChange: (([EditorLayer]) -> Void)?
+
     @StateObject private var model = EditorModel()
     @Environment(\.undoManager) private var undoManager
 
     @State private var showTextSheet = false
     @State private var selectedTextBinding: Binding<EditorLayer>? // used to edit text
 
-    var body: some View {
+    public init(layers: Binding<[EditorLayer]>,
+                config: EditorConfig = .init(),
+                onExport: ((UIImage) -> Void)? = nil,
+                onChange: (([EditorLayer]) -> Void)? = nil) {
+        self._layers = layers
+        self.config = config
+        self.onExport = onExport
+        self.onChange = onChange
+    }
+
+    public var body: some View {
         NavigationStack {
             ZStack {
                 Color(UIColor.secondarySystemBackground).ignoresSafeArea()
@@ -54,8 +69,10 @@ struct EditorCanvasView: View {
                     Button { model.addText(); showTextSheet = true } label: {
                         Label("Text", systemImage: "textformat")
                     }
-                    PhotosPicker(selection: $model.photoSelection, matching: .images, photoLibrary: .shared()) {
-                        Label("Image", systemImage: "photo")
+                    if config.showsPhotosPicker {
+                        PhotosPicker(selection: $model.photoSelection, matching: .images, photoLibrary: .shared()) {
+                            Label("Image", systemImage: "photo")
+                        }
                     }
                     Spacer()
                     if let id = model.selection, let index = model.indexOfLayer(id) {
@@ -83,25 +100,54 @@ struct EditorCanvasView: View {
                     await model.loadSelectedPhoto()
                 }
             }
+            // keep EditorModel and host binding in sync
+            .onAppear {
+                model.layers = layers
+            }
+            .onChange(of: model.layers) { _, newValue in
+                self.layers = newValue
+                self.onChange?(newValue)
+            }
+            .onChange(of: layers) { oldValue, newValue in
+                if model.layers != newValue {
+                    model.layers = newValue
+                }
+            }
             .navigationTitle("Editor")
         }
     }
 
     private func export() {
-        // Exports a 1080x1920 image of the canvas using the current layers.
-        let exportSize = CGSize(width: 1080, height: 1920)
+        let image = EditorRenderer.renderImage(layers: model.layers, size: config.exportSize)
+        onExport?(image)
+    }
+}
+
+// MARK: - Public API
+
+public struct EditorConfig: Equatable {
+    public var exportSize: CGSize
+    public var showsPhotosPicker: Bool
+
+    public init(exportSize: CGSize = CGSize(width: 1080, height: 1920),
+                showsPhotosPicker: Bool = true) {
+        self.exportSize = exportSize
+        self.showsPhotosPicker = showsPhotosPicker
+    }
+}
+
+public enum EditorRenderer {
+    @MainActor public static func renderImage(layers: [EditorLayer], size: CGSize) -> UIImage {
         let renderer = ImageRenderer(content:
             ZStack {
                 Color.clear
-                ForEach(model.layers) { layer in
+                ForEach(layers) { layer in
                     LayerRenderView(layer: layer)
                 }
             }
-            .frame(width: exportSize.width, height: exportSize.height)
+            .frame(width: size.width, height: size.height)
         )
-        if let uiImage = renderer.uiImage {
-            UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
-        }
+        return renderer.uiImage ?? UIImage()
     }
 }
 
@@ -186,40 +232,54 @@ final class EditorModel: ObservableObject {
     }
 }
 
-struct EditorLayer: Identifiable, Equatable {
-    var id = UUID()
-    var content: EditorContent
-    var position: CGPoint = CGPoint(x: 150, y: 150)
-    var scale: CGFloat = 1
-    var rotation: Angle = .degrees(0)
+public struct EditorLayer: Identifiable, Equatable {
+    public var id: UUID
+    public var content: EditorContent
+    public var position: CGPoint
+    public var scale: CGFloat
+    public var rotation: Angle
 
-    static func == (lhs: EditorLayer, rhs: EditorLayer) -> Bool { lhs.id == rhs.id }
+    public init(id: UUID = UUID(),
+                content: EditorContent,
+                position: CGPoint = CGPoint(x: 150, y: 150),
+                scale: CGFloat = 1,
+                rotation: Angle = .degrees(0)) {
+        self.id = id
+        self.content = content
+        self.position = position
+        self.scale = scale
+        self.rotation = rotation
+    }
+
+    public static func == (lhs: EditorLayer, rhs: EditorLayer) -> Bool { lhs.id == rhs.id }
 }
 
-enum EditorContent: Equatable { case text(TextModel), image(ImageModel) }
+public enum EditorContent: Equatable {
+    case text(TextModel)
+    case image(ImageModel)
+}
 
-struct TextModel: Equatable {
-    var text: String
-    var fontSize: CGFloat = 28
-    var color: Color = .primary
-    var weight: Font.Weight = .bold
+public struct TextModel: Equatable {
+    public var text: String
+    public var fontSize: CGFloat
+    public var color: Color
+    public var weight: Font.Weight
 
-    init(text: String, fontSize: CGFloat = 28, color: Color = .primary, weight: Font.Weight = .bold) {
+    public init(text: String,
+                fontSize: CGFloat = 28,
+                color: Color = .primary,
+                weight: Font.Weight = .bold) {
         self.text = text
         self.fontSize = fontSize
         self.color = color
         self.weight = weight
     }
-
-    init(text: String) {
-        self.text = text
-        self.fontSize = 28
-        self.color = .primary
-        self.weight = .bold
-    }
 }
 
-struct ImageModel: Equatable { var data: Data }
+public struct ImageModel: Equatable {
+    public var data: Data
+    public init(data: Data) { self.data = data }
+}
 
 // MARK: - Layer rendering & interaction
 
@@ -381,6 +441,12 @@ struct TextEditSheet: View {
 // MARK: - Preview
 
 #Preview {
-    EditorCanvasView()
+    PreviewHost()
 }
 
+struct PreviewHost: View {
+    @State var layers: [EditorLayer] = []
+    var body: some View {
+        EditorCanvasView(layers: $layers)
+    }
+}
