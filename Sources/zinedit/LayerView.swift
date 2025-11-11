@@ -6,6 +6,12 @@
 //
 
 import SwiftUI
+#if canImport(PencilKit)
+import PencilKit
+#endif
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct LayerView: View {
     @Binding var layer: EditorLayer
@@ -68,6 +74,32 @@ struct LayerView: View {
             } else {
                 Color.gray.frame(width: 200, height: 200)
             }
+        #if canImport(PencilKit)
+        case .drawing(let drawing):
+            if let pkDrawing = try? PKDrawing(data: drawing.data) {
+                let rect = CGRect(origin: .zero, size: drawing.size)
+                #if canImport(UIKit)
+                let scale = UIScreen.main.scale
+                #else
+                let scale: CGFloat = 2.0
+                #endif
+                let uiImage = pkDrawing.image(from: rect, scale: scale)
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 220)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .shadow(radius: 2)
+            } else {
+                Color.gray.frame(width: 200, height: 200)
+            }
+        #else
+        case .drawing(_):
+            Text("Drawing not supported on this platform")
+                .font(.footnote)
+                .padding(8)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
+        #endif
         }
     }
 }

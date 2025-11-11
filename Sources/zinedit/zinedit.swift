@@ -1,3 +1,7 @@
+// Paint support
+#if canImport(PencilKit)
+import PencilKit
+#endif
 import SwiftUI
 import PhotosUI
 
@@ -119,11 +123,62 @@ public struct EditorCanvasView: View {
 public struct EditorConfig: Equatable {
     public var exportSize: CGSize
     public var showsPhotosPicker: Bool
+    public var paint: PaintConfig?     // nil disables paint features
 
     public init(exportSize: CGSize = CGSize(width: 1080, height: 1920),
-                showsPhotosPicker: Bool = true) {
+                showsPhotosPicker: Bool = true,
+                paint: PaintConfig? = nil) {
         self.exportSize = exportSize
         self.showsPhotosPicker = showsPhotosPicker
+        self.paint = paint
+    }
+}
+
+// MARK: - Paint / Drawing public types
+
+public struct EditorBrush: Equatable {
+    public enum Kind: Equatable { case pen, marker, pencil }
+    public var kind: Kind
+    public var name: String
+    public var color: Color
+    public var width: CGFloat
+
+    public init(kind: Kind, name: String, color: Color, width: CGFloat) {
+        self.kind = kind
+        self.name = name
+        self.color = color
+        self.width = width
+    }
+}
+
+public enum EraserMode: Equatable { case vector, bitmap }
+
+public struct PaintConfig: Equatable {
+    public var brushes: [EditorBrush]          // recommend exactly 3
+    public var eraser: EraserMode
+    public var allowsFingerDrawing: Bool
+    public var showsAppleToolPicker: Bool
+
+    public init(brushes: [EditorBrush],
+                eraser: EraserMode = .vector,
+                allowsFingerDrawing: Bool = true,
+                showsAppleToolPicker: Bool = false) {
+        self.brushes = brushes
+        self.eraser = eraser
+        self.allowsFingerDrawing = allowsFingerDrawing
+        self.showsAppleToolPicker = showsAppleToolPicker
+    }
+}
+
+/// Vector drawing payload compatible with PencilKit's PKDrawing via `dataRepresentation()`.
+/// Store `size` as the base canvas size for accurate scaling during export.
+public struct DrawingModel: Equatable {
+    public var data: Data
+    public var size: CGSize
+
+    public init(data: Data, size: CGSize) {
+        self.data = data
+        self.size = size
     }
 }
 
@@ -167,6 +222,7 @@ public struct EditorLayer: Identifiable, Equatable {
 public enum EditorContent: Equatable {
     case text(TextModel)
     case image(ImageModel)
+    case drawing(DrawingModel)
 }
 
 public struct TextModel: Equatable {
