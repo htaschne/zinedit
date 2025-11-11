@@ -16,6 +16,11 @@ public struct EditorCanvasView: View {
     @Environment(\.undoManager) private var undoManager
 
     @State private var showTextSheet = false
+    #if canImport(PencilKit)
+    @State private var showDrawingSheet = false
+    @State private var selectedDrawingBinding: Binding<EditorLayer>?
+    #endif
+    @State private var canvasSize: CGSize = .zero
     @State private var selectedTextBinding: Binding<EditorLayer>? // used to edit text
 
     public init(layers: Binding<[EditorLayer]>,
@@ -39,10 +44,19 @@ public struct EditorCanvasView: View {
                             LayerView(layer: $layer)
                                 .onTapGesture { model.select(layer.id) }
                                 .simultaneousGesture(TapGesture(count: 2).onEnded {
-                                    if case .text = layer.content {
+                                    switch layer.content {
+                                    case .text:
                                         model.select(layer.id)
                                         selectedTextBinding = $layer
                                         showTextSheet = true
+                                    case .drawing:
+                                    #if canImport(PencilKit)
+                                        model.select(layer.id)
+                                        selectedDrawingBinding = $layer
+                                        showDrawingSheet = true
+                                    #endif
+                                    default:
+                                        break
                                     }
                                 })
                                 .overlay(alignment: .center) {
@@ -59,6 +73,8 @@ public struct EditorCanvasView: View {
                         }
                         return true
                     }
+                    .onAppear { canvasSize = size }
+                    .onChange(of: size) { newSize in canvasSize = newSize }
                 }
             }
             .toolbar(content: {
@@ -71,6 +87,19 @@ public struct EditorCanvasView: View {
                             Label("Image", systemImage: "photo")
                         }
                     }
+                    #if canImport(PencilKit)
+                    if config.paint != nil {
+                        Button {
+                            model.addDrawing(baseSize: canvasSize)
+                            if let id = model.selection, let binding = bindingForLayer(id) {
+                                selectedDrawingBinding = binding
+                                showDrawingSheet = true
+                            }
+                        } label: {
+                            Label("Paint", systemImage: "pencil.tip")
+                        }
+                    }
+                    #endif
                     Spacer()
                     if let id = model.selection, let index = model.indexOfLayer(id) {
                         Menu {
@@ -92,7 +121,14 @@ public struct EditorCanvasView: View {
             .sheet(isPresented: $showTextSheet) {
                 if let $layer = selectedTextBinding { TextEditSheet(layer: $layer) }
             }
-            .onChange(of: model.photoSelection) {
+            #if canImport(PencilKit)
+            .sheet(isPresented: $showDrawingSheet) {
+                if let $layer = selectedDrawingBinding, let paint = config.paint {
+                    DrawingEditSheet(layer: $layer, config: paint)
+                }
+            }
+            #endif
+            .onChange(of: model.photoSelection) { _ in
                 Task { @MainActor in
                     await model.loadSelectedPhoto()
                 }
@@ -112,6 +148,11 @@ public struct EditorCanvasView: View {
             }
             .navigationTitle("Editor")
         }
+    }
+
+    private func bindingForLayer(_ id: UUID) -> Binding<EditorLayer>? {
+        guard let index = model.indexOfLayer(id) else { return nil }
+        return $model.layers[index]
     }
 
     private func export() {
@@ -258,3 +299,201 @@ struct PreviewHost: View {
         EditorCanvasView(layers: $layers)
     }
 }
+
+final class EditorModel: ObservableObject {
+    @Published var layers: [EditorLayer] = []
+    @Published var selection: UUID?
+    @Published var photoSelection: PhotosPickerItem?
+
+    func select(_ id: UUID) {
+        selection = id
+    }
+
+    func indexOfLayer(_ id: UUID) -> Int? {
+        layers.firstIndex(where: { $0.id == id })
+    }
+
+    func bringForward(_ index: Int) {
+        guard index < layers.count - 1 else { return }
+        layers.swapAt(index, index + 1)
+    }
+
+    func sendBackward(_ index: Int) {
+        guard index > 0 else { return }
+        layers.swapAt(index, index - 1)
+    }
+
+    func deleteSelected() {
+        if let id = selection, let index = indexOfLayer(id) {
+            layers.remove(at: index)
+            selection = nil
+        }
+    }
+
+    func addText() {
+        let layer = EditorLayer(content: .text(TextModel(text: "New Text")))
+        layers.append(layer)
+        selection = layer.id
+    }
+
+    #if canImport(PencilKit)
+    func addDrawing(baseSize: CGSize) {
+        let empty = PKDrawing().dataRepresentation()
+        var layer = EditorLayer(content: .drawing(DrawingModel(data: empty, size: baseSize)))
+        layer.position = CGPoint(x: 160, y: 160)
+        layers.append(layer)
+        selection = layer.id
+    }
+    #endif
+
+    func handleDrop(_ providers: [NSItemProvider], in size: CGSize) async {
+        // Implementation omitted for brevity
+    }
+
+    func loadSelectedPhoto() async {
+        // Implementation omitted for brevity
+    }
+}
+
+struct TextEditSheet: View {
+    @Binding var layer: EditorLayer
+    // Implementation omitted for brevity
+}
+
+#if canImport(PencilKit)
+struct DrawingEditSheet: View {
+    @Binding var layer: EditorLayer
+    let config: PaintConfig
+    @Environment(\.dismiss) private var dismiss
+    @State private var data: Data = Data()
+    @State private var selectedBrushIndex: Int = 0
+    @State private var erasing: Bool = false
+
+    private var baseSize: CGSize {
+        if case .drawing(let m) = layer.content { return m.size }
+        return CGSize(width: 1080, height: 1920)
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 12) {
+                // Brush/Eraser controls
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(Array(config.brushes.enumerated()), id: \.offset) { idx, brush in
+                            Button {
+                                selectedBrushIndex = idx
+                                erasing = false
+                            } label: {
+                                Text(brush.name)
+                                    .padding(.horizontal, 10)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint((selectedBrushIndex == idx && !erasing) ? .accentColor : .secondary)
+                        }
+                        Button {
+                            erasing.toggle()
+                        } label: {
+                            Image(systemName: "eraser")
+                                .padding(.horizontal, 10)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(erasing ? .accentColor : .secondary)
+                    }
+                    .padding(.horizontal, 12)
+                }
+
+                // Canvas
+                PencilCanvasView(
+                    data: $data,
+                    baseSize: baseSize,
+                    config: config,
+                    selectedBrush: safeSelectedBrush,
+                    erasing: erasing
+                )
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(.horizontal, 12)
+            }
+            .navigationTitle("Edit Drawing")
+            .toolbar(content: {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Apply") {
+                        layer.content = .drawing(DrawingModel(data: data, size: baseSize))
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            })
+            .onAppear {
+                if case .drawing(let m) = layer.content {
+                    self.data = m.data
+                }
+            }
+        }
+    }
+
+    private var safeSelectedBrush: EditorBrush {
+        if config.brushes.indices.contains(selectedBrushIndex) {
+            return config.brushes[selectedBrushIndex]
+        }
+        return config.brushes.first ?? EditorBrush(kind: .pen, name: "Pen", color: .black, width: 3)
+    }
+}
+
+struct PencilCanvasView: UIViewRepresentable {
+    @Binding var data: Data
+    var baseSize: CGSize
+    var config: PaintConfig
+    var selectedBrush: EditorBrush
+    var erasing: Bool
+
+    func makeUIView(context: Context) -> PKCanvasView {
+        let canvas = PKCanvasView(frame: CGRect(origin: .zero, size: baseSize))
+        canvas.backgroundColor = .clear
+        canvas.isOpaque = false
+        canvas.drawingPolicy = config.allowsFingerDrawing ? .anyInput : .pencilOnly
+        if let drawing = try? PKDrawing(data: data) {
+            canvas.drawing = drawing
+        }
+        canvas.delegate = context.coordinator
+        applyTool(to: canvas)
+        return canvas
+    }
+
+    func updateUIView(_ canvas: PKCanvasView, context: Context) {
+        if let drawing = try? PKDrawing(data: data) {
+            if canvas.drawing != drawing { canvas.drawing = drawing }
+        }
+        applyTool(to: canvas)
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    private func applyTool(to canvas: PKCanvasView) {
+        if erasing {
+            let mode: PKEraserTool.EraserType = (config.eraser == .bitmap) ? .bitmap : .vector
+            canvas.tool = PKEraserTool(mode)
+        } else {
+            let inkType: PKInk.InkType
+            switch selectedBrush.kind {
+            case .pen: inkType = .pen
+            case .marker: inkType = .marker
+            case .pencil: inkType = .pencil
+            }
+            let uiColor = UIColor(selectedBrush.color)
+            canvas.tool = PKInkingTool(inkType, color: uiColor, width: selectedBrush.width)
+        }
+    }
+
+    class Coordinator: NSObject, PKCanvasViewDelegate {
+        var parent: PencilCanvasView
+        init(_ parent: PencilCanvasView) { self.parent = parent }
+        func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
+            parent.data = canvasView.drawing.dataRepresentation()
+        }
+    }
+}
+#endif
