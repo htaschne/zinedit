@@ -300,65 +300,6 @@ struct PreviewHost: View {
     }
 }
 
-final class EditorModel: ObservableObject {
-    @Published var layers: [EditorLayer] = []
-    @Published var selection: UUID?
-    @Published var photoSelection: PhotosPickerItem?
-
-    func select(_ id: UUID) {
-        selection = id
-    }
-
-    func indexOfLayer(_ id: UUID) -> Int? {
-        layers.firstIndex(where: { $0.id == id })
-    }
-
-    func bringForward(_ index: Int) {
-        guard index < layers.count - 1 else { return }
-        layers.swapAt(index, index + 1)
-    }
-
-    func sendBackward(_ index: Int) {
-        guard index > 0 else { return }
-        layers.swapAt(index, index - 1)
-    }
-
-    func deleteSelected() {
-        if let id = selection, let index = indexOfLayer(id) {
-            layers.remove(at: index)
-            selection = nil
-        }
-    }
-
-    func addText() {
-        let layer = EditorLayer(content: .text(TextModel(text: "New Text")))
-        layers.append(layer)
-        selection = layer.id
-    }
-
-    #if canImport(PencilKit)
-    func addDrawing(baseSize: CGSize) {
-        let empty = PKDrawing().dataRepresentation()
-        var layer = EditorLayer(content: .drawing(DrawingModel(data: empty, size: baseSize)))
-        layer.position = CGPoint(x: 160, y: 160)
-        layers.append(layer)
-        selection = layer.id
-    }
-    #endif
-
-    func handleDrop(_ providers: [NSItemProvider], in size: CGSize) async {
-        // Implementation omitted for brevity
-    }
-
-    func loadSelectedPhoto() async {
-        // Implementation omitted for brevity
-    }
-}
-
-struct TextEditSheet: View {
-    @Binding var layer: EditorLayer
-    // Implementation omitted for brevity
-}
 
 #if canImport(PencilKit)
 struct DrawingEditSheet: View {
