@@ -4,6 +4,11 @@ import PencilKit
 #endif
 import SwiftUI
 import PhotosUI
+#if canImport(UIKit)
+import UIKit
+#endif
+import CoreImage
+import CoreImage.CIFilterBuiltins
 
 // MARK: - Public API
 public struct EditorCanvasView: View {
@@ -22,6 +27,8 @@ public struct EditorCanvasView: View {
     #endif
     @State private var canvasSize: CGSize = .zero
     @State private var selectedTextBinding: Binding<EditorLayer>? // used to edit text
+    @State private var showNoiseSheet = false
+    @State private var selectedImageBinding: Binding<EditorLayer>?
 
     public init(layers: Binding<[EditorLayer]>,
                 config: EditorConfig = .init(),
@@ -68,13 +75,11 @@ public struct EditorCanvasView: View {
                     .contentShape(Rectangle())
                     .onTapGesture { model.selection = nil }
                     .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers in
-                        Task { @MainActor in
-                            await model.handleDrop(providers, in: size)
-                        }
+                        model.handleDrop(providers, in: size)
                         return true
                     }
                     .onAppear { canvasSize = size }
-                    .onChange(of: size) { newSize in canvasSize = newSize }
+                    .onChange(of: size) { _, newSize in canvasSize = newSize }
                 }
             }
             .toolbar(content: {
@@ -100,6 +105,19 @@ public struct EditorCanvasView: View {
                         }
                     }
                     #endif
+                    // Noise button for image layers
+                    if let id = model.selection, let index = model.indexOfLayer(id) {
+                        if case .image = model.layers[index].content {
+                            Button {
+                                if let binding = bindingForLayer(id) {
+                                    selectedImageBinding = binding
+                                    showNoiseSheet = true
+                                }
+                            } label: {
+                                Label("Noise", systemImage: "pencil.tip")
+                            }
+                        }
+                    }
                     Spacer()
                     if let id = model.selection, let index = model.indexOfLayer(id) {
                         Menu {
@@ -128,7 +146,12 @@ public struct EditorCanvasView: View {
                 }
             }
             #endif
-            .onChange(of: model.photoSelection) { _ in
+            .sheet(isPresented: $showNoiseSheet) {
+                if let $layer = selectedImageBinding {
+                    NoiseEditSheet(layer: $layer)
+                }
+            }
+            .onChange(of: model.photoSelection) { _, _ in
                 Task { @MainActor in
                     await model.loadSelectedPhoto()
                 }
@@ -435,6 +458,121 @@ struct PencilCanvasView: UIViewRepresentable {
         func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
             parent.data = canvasView.drawing.dataRepresentation()
         }
+    }
+}
+#endif
+
+#if canImport(UIKit)
+struct NoiseEditSheet: View {
+    @Binding var layer: EditorLayer
+    @Environment(\.dismiss) private var dismiss
+    @State private var intensityPercent: Double = 30 // 0...100
+    @State private var previewImage: UIImage?
+    @State private var originalData: Data = Data()
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                Group {
+                    if let ui = previewImage {
+                        Image(uiImage: ui)
+                            .resizable()
+                            .scaledToFit()
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .shadow(radius: 2)
+                            .frame(maxHeight: 360)
+                    } else {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10).fill(Color(.secondarySystemBackground))
+                            ProgressView().controlSize(.large)
+                        }
+                        .frame(height: 240)
+                    }
+                }
+                .padding(.horizontal, 16)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Noise").font(.headline)
+                        Spacer()
+                        Text("\(Int(intensityPercent))%")
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $intensityPercent, in: 0...100, step: 1) { _ in
+                        updatePreview()
+                    }
+                }
+                .padding(.horizontal, 16)
+
+                Spacer(minLength: 0)
+            }
+            .navigationTitle("Noisy Filter")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Apply") {
+                        guard let data = applyNoise(to: originalData, amount: intensityPercent / 100.0) else {
+                            dismiss(); return
+                        }
+                        layer.content = .image(ImageModel(data: data))
+                        dismiss()
+                    }
+                }
+            }
+            .onAppear {
+                if case .image(let model) = layer.content {
+                    originalData = model.data
+                    updatePreview()
+                }
+            }
+        }
+    }
+
+    private func updatePreview() {
+        guard !originalData.isEmpty else { return }
+        let amt = intensityPercent / 100.0
+        if let data = applyNoise(to: originalData, amount: amt), let ui = UIImage(data: data) {
+            previewImage = ui
+        }
+    }
+
+    private func applyNoise(to data: Data, amount: Double) -> Data? {
+        guard let input = UIImage(data: data),
+              let cg = input.cgImage else { return nil }
+        let ciInput = CIImage(cgImage: cg)
+
+        let context = CIContext(options: nil)
+        let extent = ciInput.extent
+
+        // Random noise (grayscale)
+        let rng = CIFilter.randomGenerator()
+        guard let noiseBase = rng.outputImage?.cropped(to: extent) else { return nil }
+
+        // Desaturate noise to grayscale
+        let mono = CIFilter.colorControls()
+        mono.inputImage = noiseBase
+        mono.saturation = 0
+        guard let noiseGray = mono.outputImage else { return nil }
+
+        // Blend noise over the image with overlay blend (grain-like)
+        let overlay = CIFilter.overlayBlendMode()
+        overlay.inputImage = noiseGray
+        overlay.backgroundImage = ciInput
+        guard let overlayed = overlay.outputImage else { return nil }
+
+        // Mix original with overlay result by 'amount' using dissolve
+        let dissolve = CIFilter.dissolveTransition()
+        dissolve.inputImage = ciInput
+        dissolve.targetImage = overlayed
+        dissolve.time = Float(amount)
+        guard let mixed = dissolve.outputImage?.cropped(to: extent) else { return nil }
+
+        guard let outCG = context.createCGImage(mixed, from: extent) else { return nil }
+        let out = UIImage(cgImage: outCG, scale: input.scale, orientation: input.imageOrientation)
+        return out.pngData()
     }
 }
 #endif
