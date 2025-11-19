@@ -71,9 +71,13 @@ public struct EditorCanvasView: View {
                                         }
                                     }
                                 )
-                                .overlay(alignment: .center) {
+                                .overlay {
                                     if model.selection == layer.id {
                                         SelectionBox()
+                                            .allowsHitTesting(false)
+                                            .scaleEffect(layer.scale)
+                                            .rotationEffect(layer.rotation)
+                                            .offset(x: layer.position.x, y: layer.position.y)
                                     }
                                 }
                         }
