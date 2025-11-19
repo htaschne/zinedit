@@ -496,7 +496,7 @@ struct LayersSheet: View {
                                 selection = nil
                             }
                         } label: {
-                            Image(systemName: layers[idx].isHidden ? "eye" : "eye.slash")
+                            Image(systemName: layers[idx].isHidden ? "eye.slash" : "eye")
                                 .foregroundStyle(.secondary)
                         }
                         .buttonStyle(.plain)
@@ -512,9 +512,9 @@ struct LayersSheet: View {
                             }
                         } label: {
                             if layers[idx].isHidden {
-                                Label("Show", systemImage: "eye")
+                                Label("Show", systemImage: "eye.slash")
                             } else {
-                                Label("Hide", systemImage: "eye.slash")
+                                Label("Hide", systemImage: "eye")
                             }
                         }
                     }
