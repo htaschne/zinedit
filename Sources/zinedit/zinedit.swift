@@ -481,7 +481,8 @@ struct LayersSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach($layers) { $layer in
+                ForEach(layers.indices, id: \.self) { idx in
+                    let layer = layers[idx]
                     HStack(spacing: 12) {
                         LayerRowThumb(layer: layer)
                             .frame(width: 44, height: 44)
@@ -489,19 +490,28 @@ struct LayersSheet: View {
                             .lineLimit(1)
                             .foregroundStyle(selection == layer.id ? .primary : .secondary)
                         Spacer()
-                        Image(systemName: layer.isHidden ? "eye" : "eye.fill")
-                            .foregroundStyle(.secondary)
+                        Button {
+                            layers[idx].isHidden.toggle()
+                            if layers[idx].isHidden, selection == layer.id {
+                                selection = nil
+                            }
+                        } label: {
+                            Image(systemName: layers[idx].isHidden ? "eye" : "eye.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(layers[idx].isHidden ? "Show layer" : "Hide layer")
                     }
                     .contentShape(Rectangle())
                     .onTapGesture { selection = layer.id }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button {
-                            layer.isHidden.toggle()
-                            if layer.isHidden, selection == layer.id {
+                            layers[idx].isHidden.toggle()
+                            if layers[idx].isHidden, selection == layer.id {
                                 selection = nil
                             }
                         } label: {
-                            if layer.isHidden {
+                            if layers[idx].isHidden {
                                 Label("Show", systemImage: "eye.fill")
                             } else {
                                 Label("Hide", systemImage: "eye.slash")
