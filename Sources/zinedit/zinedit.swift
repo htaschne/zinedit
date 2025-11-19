@@ -26,6 +26,7 @@ public struct EditorCanvasView: View {
         @State private var showDrawingSheet = false
         @State private var selectedDrawingBinding: Binding<EditorLayer>?
     #endif
+    @State private var showLayersSheet = false
     @State private var canvasSize: CGSize = .zero
     @State private var selectedTextBinding: Binding<EditorLayer>?  // used to edit text
     @State private var showNoiseSheet = false
@@ -51,35 +52,37 @@ public struct EditorCanvasView: View {
                     let size = geo.size
                     ZStack {
                         ForEach($model.layers) { $layer in
-                            LayerView(layer: $layer)
-                                .onTapGesture { model.select(layer.id) }
-                                .simultaneousGesture(
-                                    TapGesture(count: 2).onEnded {
-                                        switch layer.content {
-                                        case .text:
-                                            model.select(layer.id)
-                                            selectedTextBinding = $layer
-                                            showTextSheet = true
-                                        case .drawing:
-                                            #if canImport(PencilKit)
+                            if !layer.isHidden {
+                                LayerView(layer: $layer)
+                                    .onTapGesture { model.select(layer.id) }
+                                    .simultaneousGesture(
+                                        TapGesture(count: 2).onEnded {
+                                            switch layer.content {
+                                            case .text:
                                                 model.select(layer.id)
-                                                selectedDrawingBinding = $layer
-                                                showDrawingSheet = true
-                                            #endif
-                                        default:
-                                            break
+                                                selectedTextBinding = $layer
+                                                showTextSheet = true
+                                            case .drawing:
+                                                #if canImport(PencilKit)
+                                                    model.select(layer.id)
+                                                    selectedDrawingBinding = $layer
+                                                    showDrawingSheet = true
+                                                #endif
+                                            default:
+                                                break
+                                            }
+                                        }
+                                    )
+                                    .overlay {
+                                        if model.selection == layer.id && !layer.isHidden {
+                                            SelectionBox()
+                                                .allowsHitTesting(false)
+                                                .scaleEffect(layer.scale)
+                                                .rotationEffect(layer.rotation)
+                                                .offset(x: layer.position.x, y: layer.position.y)
                                         }
                                     }
-                                )
-                                .overlay {
-                                    if model.selection == layer.id {
-                                        SelectionBox()
-                                            .allowsHitTesting(false)
-                                            .scaleEffect(layer.scale)
-                                            .rotationEffect(layer.rotation)
-                                            .offset(x: layer.position.x, y: layer.position.y)
-                                    }
-                                }
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -147,28 +150,10 @@ public struct EditorCanvasView: View {
                         }
                     }
                     Spacer()
-                    if let id = model.selection,
-                        let index = model.indexOfLayer(id)
-                    {
-                        Menu {
-                            Button("Bring Forward") {
-                                model.bringForward(index)
-                            }
-                            Button("Send Backward") {
-                                model.sendBackward(index)
-                            }
-                            Divider()
-                            Button(role: .destructive) {
-                                model.deleteSelected()
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        } label: {
-                            Label(
-                                "Layer",
-                                systemImage: "square.3.layers.3d.top.filled"
-                            )
-                        }
+                    Button {
+                        showLayersSheet = true
+                    } label: {
+                        Label("Layers", systemImage: "square.3.layers.3d.top.filled")
                     }
                     Button {
                         export()
@@ -195,6 +180,9 @@ public struct EditorCanvasView: View {
                 if let $layer = selectedImageBinding {
                     NoiseEditSheet(layer: $layer)
                 }
+            }
+            .sheet(isPresented: $showLayersSheet) {
+                LayersSheet(layers: $model.layers, selection: $model.selection)
             }
             .onChange(of: model.photoSelection) { _, _ in
                 Task { @MainActor in
@@ -307,7 +295,7 @@ public enum EditorRenderer {
             content:
                 ZStack {
                     Color.clear
-                    ForEach(layers) { layer in
+                    ForEach(layers.filter { !$0.isHidden }) { layer in
                         LayerRenderView(layer: layer)
                     }
                 }
@@ -323,19 +311,22 @@ public struct EditorLayer: Identifiable, Equatable {
     public var position: CGPoint
     public var scale: CGFloat
     public var rotation: Angle
-
+    public var isHidden: Bool
+    
     public init(
         id: UUID = UUID(),
         content: EditorContent,
         position: CGPoint = CGPoint(x: 150, y: 150),
         scale: CGFloat = 1,
-        rotation: Angle = .degrees(0)
+        rotation: Angle = .degrees(0),
+        isHidden: Bool = false
     ) {
         self.id = id
         self.content = content
         self.position = position
         self.scale = scale
         self.rotation = rotation
+        self.isHidden = isHidden
     }
 
     public static func == (lhs: EditorLayer, rhs: EditorLayer) -> Bool {
@@ -382,6 +373,78 @@ struct PreviewHost: View {
     @State var layers: [EditorLayer] = []
     var body: some View {
         EditorCanvasView(layers: $layers)
+    }
+}
+
+struct LayersSheet: View {
+    @Binding var layers: [EditorLayer]
+    @Binding var selection: UUID?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach($layers) { $layer in
+                    HStack(spacing: 12) {
+                        LayerRowThumb(layer: layer)
+                            .frame(width: 44, height: 44)
+                        Text(title(for: layer))
+                            .lineLimit(1)
+                            .foregroundStyle(selection == layer.id ? .primary : .secondary)
+                        Spacer()
+                        Image(systemName: layer.isHidden ? "eye.slash" : "eye")
+                            .foregroundStyle(.secondary)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture { selection = layer.id }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button {
+                            layer.isHidden.toggle()
+                        } label: {
+                            if layer.isHidden {
+                                Label("Show", systemImage: "eye")
+                            } else {
+                                Label("Hide", systemImage: "eye.slash")
+                            }
+                        }
+                    }
+                }
+                .onMove(perform: move)
+            }
+            .environment(\.editMode, .constant(.active))
+            .navigationTitle("Layers")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func move(from source: IndexSet, to destination: Int) {
+        layers.move(fromOffsets: source, toOffset: destination)
+    }
+
+    private func title(for layer: EditorLayer) -> String {
+        switch layer.content {
+        case .text: return "Text"
+        case .image: return "Image"
+        case .drawing: return "Drawing"
+        }
+    }
+}
+
+struct LayerRowThumb: View {
+    let layer: EditorLayer
+    var body: some View {
+        LayerRenderView(layer: layer)
+            .opacity(layer.isHidden ? 0.35 : 1)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(.separator), lineWidth: 1))
     }
 }
 
