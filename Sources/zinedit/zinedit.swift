@@ -100,7 +100,10 @@ public struct EditorCanvasView: View {
                 ToolbarItemGroup(placement: .bottomBar) {
                     Button {
                         model.addText()
-                        showTextSheet = true
+                        if let id = model.selection, let binding = bindingForLayer(id) {
+                            selectedTextBinding = binding
+                            showTextSheet = true
+                        }
                     } label: {
                         Label("Text", systemImage: "textformat")
                     }
