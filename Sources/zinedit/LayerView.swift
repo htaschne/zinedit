@@ -6,11 +6,12 @@
 //
 
 import SwiftUI
+
 #if canImport(PencilKit)
-import PencilKit
+    import PencilKit
 #endif
 #if canImport(UIKit)
-import UIKit
+    import UIKit
 #endif
 
 struct LayerView: View {
@@ -30,8 +31,10 @@ struct LayerView: View {
                     .onChanged { value in
                         if dragStart == nil { dragStart = layer.position }
                         if let start = dragStart {
-                            layer.position = CGPoint(x: start.x + value.translation.width,
-                                                     y: start.y + value.translation.height)
+                            layer.position = CGPoint(
+                                x: start.x + value.translation.width,
+                                y: start.y + value.translation.height
+                            )
                         }
                     }
                     .onEnded { _ in dragStart = nil }
@@ -40,15 +43,21 @@ struct LayerView: View {
                 MagnificationGesture()
                     .onChanged { value in
                         if scaleStart == nil { scaleStart = layer.scale }
-                        if let base = scaleStart { layer.scale = max(0.2, base * value) }
+                        if let base = scaleStart {
+                            layer.scale = max(0.2, base * value)
+                        }
                     }
                     .onEnded { _ in scaleStart = nil }
             )
             .simultaneousGesture(
                 RotationGesture()
                     .onChanged { value in
-                        if rotationStart == nil { rotationStart = layer.rotation }
-                        if let base = rotationStart { layer.rotation = base + value }
+                        if rotationStart == nil {
+                            rotationStart = layer.rotation
+                        }
+                        if let base = rotationStart {
+                            layer.rotation = base + value
+                        }
                     }
                     .onEnded { _ in rotationStart = nil }
             )
@@ -62,7 +71,10 @@ struct LayerView: View {
                 .font(.system(size: text.fontSize, weight: text.weight))
                 .foregroundStyle(text.color)
                 .padding(8)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                .background(
+                    .thinMaterial,
+                    in: RoundedRectangle(cornerRadius: 8)
+                )
         case .image(let image):
             if let uiImage = UIImage(data: image.data) {
                 Image(uiImage: uiImage)
@@ -75,30 +87,33 @@ struct LayerView: View {
                 Color.gray.frame(width: 200, height: 200)
             }
         #if canImport(PencilKit)
-        case .drawing(let drawing):
-            if let pkDrawing = try? PKDrawing(data: drawing.data) {
-                let rect = CGRect(origin: .zero, size: drawing.size)
-                #if canImport(UIKit)
-                let scale = UIScreen.main.scale
-                #else
-                let scale: CGFloat = 2.0
-                #endif
-                let uiImage = pkDrawing.image(from: rect, scale: scale)
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 220)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .shadow(radius: 2)
-            } else {
-                Color.gray.frame(width: 200, height: 200)
-            }
+            case .drawing(let drawing):
+                if let pkDrawing = try? PKDrawing(data: drawing.data) {
+                    let rect = CGRect(origin: .zero, size: drawing.size)
+                    #if canImport(UIKit)
+                        let scale = UIScreen.main.scale
+                    #else
+                        let scale: CGFloat = 2.0
+                    #endif
+                    let uiImage = pkDrawing.image(from: rect, scale: scale)
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 220)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .shadow(radius: 2)
+                } else {
+                    Color.gray.frame(width: 200, height: 200)
+                }
         #else
-        case .drawing(_):
-            Text("Drawing not supported on this platform")
-                .font(.footnote)
-                .padding(8)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
+            case .drawing(_):
+                Text("Drawing not supported on this platform")
+                    .font(.footnote)
+                    .padding(8)
+                    .background(
+                        .thinMaterial,
+                        in: RoundedRectangle(cornerRadius: 8)
+                    )
         #endif
         }
     }

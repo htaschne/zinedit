@@ -1,14 +1,15 @@
-// Paint support
-#if canImport(PencilKit)
-import PencilKit
-#endif
-import SwiftUI
-import PhotosUI
-#if canImport(UIKit)
-import UIKit
-#endif
 import CoreImage
 import CoreImage.CIFilterBuiltins
+import PhotosUI
+import SwiftUI
+
+// Paint support
+#if canImport(PencilKit)
+    import PencilKit
+#endif
+#if canImport(UIKit)
+    import UIKit
+#endif
 
 // MARK: - Public API
 public struct EditorCanvasView: View {
@@ -22,18 +23,20 @@ public struct EditorCanvasView: View {
 
     @State private var showTextSheet = false
     #if canImport(PencilKit)
-    @State private var showDrawingSheet = false
-    @State private var selectedDrawingBinding: Binding<EditorLayer>?
+        @State private var showDrawingSheet = false
+        @State private var selectedDrawingBinding: Binding<EditorLayer>?
     #endif
     @State private var canvasSize: CGSize = .zero
-    @State private var selectedTextBinding: Binding<EditorLayer>? // used to edit text
+    @State private var selectedTextBinding: Binding<EditorLayer>?  // used to edit text
     @State private var showNoiseSheet = false
     @State private var selectedImageBinding: Binding<EditorLayer>?
 
-    public init(layers: Binding<[EditorLayer]>,
-                config: EditorConfig = .init(),
-                onExport: ((UIImage) -> Void)? = nil,
-                onChange: (([EditorLayer]) -> Void)? = nil) {
+    public init(
+        layers: Binding<[EditorLayer]>,
+        config: EditorConfig = .init(),
+        onExport: ((UIImage) -> Void)? = nil,
+        onChange: (([EditorLayer]) -> Void)? = nil
+    ) {
         self._layers = layers
         self.config = config
         self.onExport = onExport
@@ -50,31 +53,38 @@ public struct EditorCanvasView: View {
                         ForEach($model.layers) { $layer in
                             LayerView(layer: $layer)
                                 .onTapGesture { model.select(layer.id) }
-                                .simultaneousGesture(TapGesture(count: 2).onEnded {
-                                    switch layer.content {
-                                    case .text:
-                                        model.select(layer.id)
-                                        selectedTextBinding = $layer
-                                        showTextSheet = true
-                                    case .drawing:
-                                    #if canImport(PencilKit)
-                                        model.select(layer.id)
-                                        selectedDrawingBinding = $layer
-                                        showDrawingSheet = true
-                                    #endif
-                                    default:
-                                        break
+                                .simultaneousGesture(
+                                    TapGesture(count: 2).onEnded {
+                                        switch layer.content {
+                                        case .text:
+                                            model.select(layer.id)
+                                            selectedTextBinding = $layer
+                                            showTextSheet = true
+                                        case .drawing:
+                                            #if canImport(PencilKit)
+                                                model.select(layer.id)
+                                                selectedDrawingBinding = $layer
+                                                showDrawingSheet = true
+                                            #endif
+                                        default:
+                                            break
+                                        }
                                     }
-                                })
+                                )
                                 .overlay(alignment: .center) {
-                                    if model.selection == layer.id { SelectionBox() }
+                                    if model.selection == layer.id {
+                                        SelectionBox()
+                                    }
                                 }
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .contentShape(Rectangle())
                     .onTapGesture { model.selection = nil }
-                    .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers in
+                    .onDrop(
+                        of: ["public.image", "public.text"],
+                        isTargeted: nil
+                    ) { providers in
                         model.handleDrop(providers, in: size)
                         return true
                     }
@@ -84,29 +94,40 @@ public struct EditorCanvasView: View {
             }
             .toolbar(content: {
                 ToolbarItemGroup(placement: .bottomBar) {
-                    Button { model.addText(); showTextSheet = true } label: {
+                    Button {
+                        model.addText()
+                        showTextSheet = true
+                    } label: {
                         Label("Text", systemImage: "textformat")
                     }
                     if config.showsPhotosPicker {
-                        PhotosPicker(selection: $model.photoSelection, matching: .images, photoLibrary: .shared()) {
+                        PhotosPicker(
+                            selection: $model.photoSelection,
+                            matching: .images,
+                            photoLibrary: .shared()
+                        ) {
                             Label("Image", systemImage: "photo")
                         }
                     }
                     #if canImport(PencilKit)
-                    if config.paint != nil {
-                        Button {
-                            model.addDrawing(baseSize: canvasSize)
-                            if let id = model.selection, let binding = bindingForLayer(id) {
-                                selectedDrawingBinding = binding
-                                showDrawingSheet = true
+                        if config.paint != nil {
+                            Button {
+                                model.addDrawing(baseSize: canvasSize)
+                                if let id = model.selection,
+                                    let binding = bindingForLayer(id)
+                                {
+                                    selectedDrawingBinding = binding
+                                    showDrawingSheet = true
+                                }
+                            } label: {
+                                Label("Paint", systemImage: "pencil.tip")
                             }
-                        } label: {
-                            Label("Paint", systemImage: "pencil.tip")
                         }
-                    }
                     #endif
                     // Noise button for image layers
-                    if let id = model.selection, let index = model.indexOfLayer(id) {
+                    if let id = model.selection,
+                        let index = model.indexOfLayer(id)
+                    {
                         if case .image = model.layers[index].content {
                             Button {
                                 if let binding = bindingForLayer(id) {
@@ -119,32 +140,49 @@ public struct EditorCanvasView: View {
                         }
                     }
                     Spacer()
-                    if let id = model.selection, let index = model.indexOfLayer(id) {
+                    if let id = model.selection,
+                        let index = model.indexOfLayer(id)
+                    {
                         Menu {
-                            Button("Bring Forward") { model.bringForward(index) }
-                            Button("Send Backward") { model.sendBackward(index) }
+                            Button("Bring Forward") {
+                                model.bringForward(index)
+                            }
+                            Button("Send Backward") {
+                                model.sendBackward(index)
+                            }
                             Divider()
-                            Button(role: .destructive) { model.deleteSelected() } label: {
+                            Button(role: .destructive) {
+                                model.deleteSelected()
+                            } label: {
                                 Label("Delete", systemImage: "trash")
                             }
                         } label: {
-                            Label("Layer", systemImage: "square.3.layers.3d.top.filled")
+                            Label(
+                                "Layer",
+                                systemImage: "square.3.layers.3d.top.filled"
+                            )
                         }
                     }
-                    Button { export() } label: {
+                    Button {
+                        export()
+                    } label: {
                         Label("Export", systemImage: "square.and.arrow.up")
                     }
                 }
             })
             .sheet(isPresented: $showTextSheet) {
-                if let $layer = selectedTextBinding { TextEditSheet(layer: $layer) }
-            }
-            #if canImport(PencilKit)
-            .sheet(isPresented: $showDrawingSheet) {
-                if let $layer = selectedDrawingBinding, let paint = config.paint {
-                    DrawingEditSheet(layer: $layer, config: paint)
+                if let $layer = selectedTextBinding {
+                    TextEditSheet(layer: $layer)
                 }
             }
+            #if canImport(PencilKit)
+                .sheet(isPresented: $showDrawingSheet) {
+                    if let $layer = selectedDrawingBinding,
+                        let paint = config.paint
+                    {
+                        DrawingEditSheet(layer: $layer, config: paint)
+                    }
+                }
             #endif
             .sheet(isPresented: $showNoiseSheet) {
                 if let $layer = selectedImageBinding {
@@ -179,7 +217,10 @@ public struct EditorCanvasView: View {
     }
 
     private func export() {
-        let image = EditorRenderer.renderImage(layers: model.layers, size: config.exportSize)
+        let image = EditorRenderer.renderImage(
+            layers: model.layers,
+            size: config.exportSize
+        )
         onExport?(image)
     }
 }
@@ -187,11 +228,13 @@ public struct EditorCanvasView: View {
 public struct EditorConfig: Equatable {
     public var exportSize: CGSize
     public var showsPhotosPicker: Bool
-    public var paint: PaintConfig?     // nil disables paint features
+    public var paint: PaintConfig?  // nil disables paint features
 
-    public init(exportSize: CGSize = CGSize(width: 1080, height: 1920),
-                showsPhotosPicker: Bool = true,
-                paint: PaintConfig? = nil) {
+    public init(
+        exportSize: CGSize = CGSize(width: 1080, height: 1920),
+        showsPhotosPicker: Bool = true,
+        paint: PaintConfig? = nil
+    ) {
         self.exportSize = exportSize
         self.showsPhotosPicker = showsPhotosPicker
         self.paint = paint
@@ -218,15 +261,17 @@ public struct EditorBrush: Equatable {
 public enum EraserMode: Equatable { case vector, bitmap }
 
 public struct PaintConfig: Equatable {
-    public var brushes: [EditorBrush]          // recommend exactly 3
+    public var brushes: [EditorBrush]  // recommend exactly 3
     public var eraser: EraserMode
     public var allowsFingerDrawing: Bool
     public var showsAppleToolPicker: Bool
 
-    public init(brushes: [EditorBrush],
-                eraser: EraserMode = .vector,
-                allowsFingerDrawing: Bool = true,
-                showsAppleToolPicker: Bool = false) {
+    public init(
+        brushes: [EditorBrush],
+        eraser: EraserMode = .vector,
+        allowsFingerDrawing: Bool = true,
+        showsAppleToolPicker: Bool = false
+    ) {
         self.brushes = brushes
         self.eraser = eraser
         self.allowsFingerDrawing = allowsFingerDrawing
@@ -247,15 +292,19 @@ public struct DrawingModel: Equatable {
 }
 
 public enum EditorRenderer {
-    @MainActor public static func renderImage(layers: [EditorLayer], size: CGSize) -> UIImage {
-        let renderer = ImageRenderer(content:
-            ZStack {
-                Color.clear
-                ForEach(layers) { layer in
-                    LayerRenderView(layer: layer)
+    @MainActor public static func renderImage(
+        layers: [EditorLayer],
+        size: CGSize
+    ) -> UIImage {
+        let renderer = ImageRenderer(
+            content:
+                ZStack {
+                    Color.clear
+                    ForEach(layers) { layer in
+                        LayerRenderView(layer: layer)
+                    }
                 }
-            }
-            .frame(width: size.width, height: size.height)
+                .frame(width: size.width, height: size.height)
         )
         return renderer.uiImage ?? UIImage()
     }
@@ -268,11 +317,13 @@ public struct EditorLayer: Identifiable, Equatable {
     public var scale: CGFloat
     public var rotation: Angle
 
-    public init(id: UUID = UUID(),
-                content: EditorContent,
-                position: CGPoint = CGPoint(x: 150, y: 150),
-                scale: CGFloat = 1,
-                rotation: Angle = .degrees(0)) {
+    public init(
+        id: UUID = UUID(),
+        content: EditorContent,
+        position: CGPoint = CGPoint(x: 150, y: 150),
+        scale: CGFloat = 1,
+        rotation: Angle = .degrees(0)
+    ) {
         self.id = id
         self.content = content
         self.position = position
@@ -280,7 +331,9 @@ public struct EditorLayer: Identifiable, Equatable {
         self.rotation = rotation
     }
 
-    public static func == (lhs: EditorLayer, rhs: EditorLayer) -> Bool { lhs.id == rhs.id }
+    public static func == (lhs: EditorLayer, rhs: EditorLayer) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 public enum EditorContent: Equatable {
@@ -295,10 +348,12 @@ public struct TextModel: Equatable {
     public var color: Color
     public var weight: Font.Weight
 
-    public init(text: String,
-                fontSize: CGFloat = 28,
-                color: Color = .primary,
-                weight: Font.Weight = .bold) {
+    public init(
+        text: String,
+        fontSize: CGFloat = 28,
+        color: Color = .primary,
+        weight: Font.Weight = .bold
+    ) {
         self.text = text
         self.fontSize = fontSize
         self.color = color
@@ -323,256 +378,294 @@ struct PreviewHost: View {
     }
 }
 
-
 #if canImport(PencilKit)
-struct DrawingEditSheet: View {
-    @Binding var layer: EditorLayer
-    let config: PaintConfig
-    @Environment(\.dismiss) private var dismiss
-    @State private var data: Data = Data()
-    @State private var selectedBrushIndex: Int = 0
-    @State private var erasing: Bool = false
+    struct DrawingEditSheet: View {
+        @Binding var layer: EditorLayer
+        let config: PaintConfig
+        @Environment(\.dismiss) private var dismiss
+        @State private var data: Data = Data()
+        @State private var selectedBrushIndex: Int = 0
+        @State private var erasing: Bool = false
 
-    private var baseSize: CGSize {
-        if case .drawing(let m) = layer.content { return m.size }
-        return CGSize(width: 1080, height: 1920)
-    }
+        private var baseSize: CGSize {
+            if case .drawing(let m) = layer.content { return m.size }
+            return CGSize(width: 1080, height: 1920)
+        }
 
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 12) {
-                // Brush/Eraser controls
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(Array(config.brushes.enumerated()), id: \.offset) { idx, brush in
+        var body: some View {
+            NavigationStack {
+                VStack(spacing: 12) {
+                    // Brush/Eraser controls
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(
+                                Array(config.brushes.enumerated()),
+                                id: \.offset
+                            ) { idx, brush in
+                                Button {
+                                    selectedBrushIndex = idx
+                                    erasing = false
+                                } label: {
+                                    Text(brush.name)
+                                        .padding(.horizontal, 10)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(
+                                    (selectedBrushIndex == idx && !erasing)
+                                        ? .accentColor : .secondary
+                                )
+                            }
                             Button {
-                                selectedBrushIndex = idx
-                                erasing = false
+                                erasing.toggle()
                             } label: {
-                                Text(brush.name)
+                                Image(systemName: "eraser")
                                     .padding(.horizontal, 10)
                             }
-                            .buttonStyle(.borderedProminent)
-                            .tint((selectedBrushIndex == idx && !erasing) ? .accentColor : .secondary)
+                            .buttonStyle(.bordered)
+                            .tint(erasing ? .accentColor : .secondary)
                         }
-                        Button {
-                            erasing.toggle()
-                        } label: {
-                            Image(systemName: "eraser")
-                                .padding(.horizontal, 10)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(erasing ? .accentColor : .secondary)
+                        .padding(.horizontal, 12)
                     }
+
+                    // Canvas
+                    PencilCanvasView(
+                        data: $data,
+                        baseSize: baseSize,
+                        config: config,
+                        selectedBrush: safeSelectedBrush,
+                        erasing: erasing
+                    )
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                     .padding(.horizontal, 12)
                 }
-
-                // Canvas
-                PencilCanvasView(
-                    data: $data,
-                    baseSize: baseSize,
-                    config: config,
-                    selectedBrush: safeSelectedBrush,
-                    erasing: erasing
-                )
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .padding(.horizontal, 12)
-            }
-            .navigationTitle("Edit Drawing")
-            .toolbar(content: {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Apply") {
-                        layer.content = .drawing(DrawingModel(data: data, size: baseSize))
-                        dismiss()
+                .navigationTitle("Edit Drawing")
+                .toolbar(content: {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Apply") {
+                            layer.content = .drawing(
+                                DrawingModel(data: data, size: baseSize)
+                            )
+                            dismiss()
+                        }
+                    }
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") { dismiss() }
+                    }
+                })
+                .onAppear {
+                    if case .drawing(let m) = layer.content {
+                        self.data = m.data
                     }
                 }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+            }
+        }
+
+        private var safeSelectedBrush: EditorBrush {
+            if config.brushes.indices.contains(selectedBrushIndex) {
+                return config.brushes[selectedBrushIndex]
+            }
+            return config.brushes.first
+                ?? EditorBrush(kind: .pen, name: "Pen", color: .black, width: 3)
+        }
+    }
+
+    struct PencilCanvasView: UIViewRepresentable {
+        @Binding var data: Data
+        var baseSize: CGSize
+        var config: PaintConfig
+        var selectedBrush: EditorBrush
+        var erasing: Bool
+
+        func makeUIView(context: Context) -> PKCanvasView {
+            let canvas = PKCanvasView(
+                frame: CGRect(origin: .zero, size: baseSize)
+            )
+            canvas.backgroundColor = .clear
+            canvas.isOpaque = false
+            canvas.drawingPolicy =
+                config.allowsFingerDrawing ? .anyInput : .pencilOnly
+            if let drawing = try? PKDrawing(data: data) {
+                canvas.drawing = drawing
+            }
+            canvas.delegate = context.coordinator
+            applyTool(to: canvas)
+            return canvas
+        }
+
+        func updateUIView(_ canvas: PKCanvasView, context: Context) {
+            if let drawing = try? PKDrawing(data: data) {
+                if canvas.drawing != drawing { canvas.drawing = drawing }
+            }
+            applyTool(to: canvas)
+        }
+
+        func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+        private func applyTool(to canvas: PKCanvasView) {
+            if erasing {
+                let mode: PKEraserTool.EraserType =
+                    (config.eraser == .bitmap) ? .bitmap : .vector
+                canvas.tool = PKEraserTool(mode)
+            } else {
+                let inkType: PKInk.InkType
+                switch selectedBrush.kind {
+                case .pen: inkType = .pen
+                case .marker: inkType = .marker
+                case .pencil: inkType = .pencil
                 }
-            })
-            .onAppear {
-                if case .drawing(let m) = layer.content {
-                    self.data = m.data
-                }
+                let uiColor = UIColor(selectedBrush.color)
+                canvas.tool = PKInkingTool(
+                    inkType,
+                    color: uiColor,
+                    width: selectedBrush.width
+                )
+            }
+        }
+
+        class Coordinator: NSObject, PKCanvasViewDelegate {
+            var parent: PencilCanvasView
+            init(_ parent: PencilCanvasView) { self.parent = parent }
+            func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
+                parent.data = canvasView.drawing.dataRepresentation()
             }
         }
     }
-
-    private var safeSelectedBrush: EditorBrush {
-        if config.brushes.indices.contains(selectedBrushIndex) {
-            return config.brushes[selectedBrushIndex]
-        }
-        return config.brushes.first ?? EditorBrush(kind: .pen, name: "Pen", color: .black, width: 3)
-    }
-}
-
-struct PencilCanvasView: UIViewRepresentable {
-    @Binding var data: Data
-    var baseSize: CGSize
-    var config: PaintConfig
-    var selectedBrush: EditorBrush
-    var erasing: Bool
-
-    func makeUIView(context: Context) -> PKCanvasView {
-        let canvas = PKCanvasView(frame: CGRect(origin: .zero, size: baseSize))
-        canvas.backgroundColor = .clear
-        canvas.isOpaque = false
-        canvas.drawingPolicy = config.allowsFingerDrawing ? .anyInput : .pencilOnly
-        if let drawing = try? PKDrawing(data: data) {
-            canvas.drawing = drawing
-        }
-        canvas.delegate = context.coordinator
-        applyTool(to: canvas)
-        return canvas
-    }
-
-    func updateUIView(_ canvas: PKCanvasView, context: Context) {
-        if let drawing = try? PKDrawing(data: data) {
-            if canvas.drawing != drawing { canvas.drawing = drawing }
-        }
-        applyTool(to: canvas)
-    }
-
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
-
-    private func applyTool(to canvas: PKCanvasView) {
-        if erasing {
-            let mode: PKEraserTool.EraserType = (config.eraser == .bitmap) ? .bitmap : .vector
-            canvas.tool = PKEraserTool(mode)
-        } else {
-            let inkType: PKInk.InkType
-            switch selectedBrush.kind {
-            case .pen: inkType = .pen
-            case .marker: inkType = .marker
-            case .pencil: inkType = .pencil
-            }
-            let uiColor = UIColor(selectedBrush.color)
-            canvas.tool = PKInkingTool(inkType, color: uiColor, width: selectedBrush.width)
-        }
-    }
-
-    class Coordinator: NSObject, PKCanvasViewDelegate {
-        var parent: PencilCanvasView
-        init(_ parent: PencilCanvasView) { self.parent = parent }
-        func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
-            parent.data = canvasView.drawing.dataRepresentation()
-        }
-    }
-}
 #endif
 
 #if canImport(UIKit)
-struct NoiseEditSheet: View {
-    @Binding var layer: EditorLayer
-    @Environment(\.dismiss) private var dismiss
-    @State private var intensityPercent: Double = 30 // 0...100
-    @State private var previewImage: UIImage?
-    @State private var originalData: Data = Data()
+    struct NoiseEditSheet: View {
+        @Binding var layer: EditorLayer
+        @Environment(\.dismiss) private var dismiss
+        @State private var intensityPercent: Double = 30  // 0...100
+        @State private var previewImage: UIImage?
+        @State private var originalData: Data = Data()
 
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                Group {
-                    if let ui = previewImage {
-                        Image(uiImage: ui)
-                            .resizable()
-                            .scaledToFit()
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .shadow(radius: 2)
-                            .frame(maxHeight: 360)
-                    } else {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10).fill(Color(.secondarySystemBackground))
-                            ProgressView().controlSize(.large)
+        var body: some View {
+            NavigationStack {
+                VStack(spacing: 16) {
+                    Group {
+                        if let ui = previewImage {
+                            Image(uiImage: ui)
+                                .resizable()
+                                .scaledToFit()
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .shadow(radius: 2)
+                                .frame(maxHeight: 360)
+                        } else {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10).fill(
+                                    Color(.secondarySystemBackground)
+                                )
+                                ProgressView().controlSize(.large)
+                            }
+                            .frame(height: 240)
                         }
-                        .frame(height: 240)
+                    }
+                    .padding(.horizontal, 16)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Noise").font(.headline)
+                            Spacer()
+                            Text("\(Int(intensityPercent))%")
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                        }
+                        Slider(value: $intensityPercent, in: 0...100, step: 1) {
+                            _ in
+                            updatePreview()
+                        }
+                    }
+                    .padding(.horizontal, 16)
+
+                    Spacer(minLength: 0)
+                }
+                .navigationTitle("Noisy Filter")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") { dismiss() }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Apply") {
+                            guard
+                                let data = applyNoise(
+                                    to: originalData,
+                                    amount: intensityPercent / 100.0
+                                )
+                            else {
+                                dismiss()
+                                return
+                            }
+                            layer.content = .image(ImageModel(data: data))
+                            dismiss()
+                        }
                     }
                 }
-                .padding(.horizontal, 16)
-
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Noise").font(.headline)
-                        Spacer()
-                        Text("\(Int(intensityPercent))%")
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                    }
-                    Slider(value: $intensityPercent, in: 0...100, step: 1) { _ in
+                .onAppear {
+                    if case .image(let model) = layer.content {
+                        originalData = model.data
                         updatePreview()
                     }
                 }
-                .padding(.horizontal, 16)
-
-                Spacer(minLength: 0)
-            }
-            .navigationTitle("Noisy Filter")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Apply") {
-                        guard let data = applyNoise(to: originalData, amount: intensityPercent / 100.0) else {
-                            dismiss(); return
-                        }
-                        layer.content = .image(ImageModel(data: data))
-                        dismiss()
-                    }
-                }
-            }
-            .onAppear {
-                if case .image(let model) = layer.content {
-                    originalData = model.data
-                    updatePreview()
-                }
             }
         }
-    }
 
-    private func updatePreview() {
-        guard !originalData.isEmpty else { return }
-        let amt = intensityPercent / 100.0
-        if let data = applyNoise(to: originalData, amount: amt), let ui = UIImage(data: data) {
-            previewImage = ui
+        private func updatePreview() {
+            guard !originalData.isEmpty else { return }
+            let amt = intensityPercent / 100.0
+            if let data = applyNoise(to: originalData, amount: amt),
+                let ui = UIImage(data: data)
+            {
+                previewImage = ui
+            }
+        }
+
+        private func applyNoise(to data: Data, amount: Double) -> Data? {
+            guard let input = UIImage(data: data),
+                let cg = input.cgImage
+            else { return nil }
+            let ciInput = CIImage(cgImage: cg)
+
+            let context = CIContext(options: nil)
+            let extent = ciInput.extent
+
+            // Random noise (grayscale)
+            let rng = CIFilter.randomGenerator()
+            guard let noiseBase = rng.outputImage?.cropped(to: extent) else {
+                return nil
+            }
+
+            // Desaturate noise to grayscale
+            let mono = CIFilter.colorControls()
+            mono.inputImage = noiseBase
+            mono.saturation = 0
+            guard let noiseGray = mono.outputImage else { return nil }
+
+            // Blend noise over the image with overlay blend (grain-like)
+            let overlay = CIFilter.overlayBlendMode()
+            overlay.inputImage = noiseGray
+            overlay.backgroundImage = ciInput
+            guard let overlayed = overlay.outputImage else { return nil }
+
+            // Mix original with overlay result by 'amount' using dissolve
+            let dissolve = CIFilter.dissolveTransition()
+            dissolve.inputImage = ciInput
+            dissolve.targetImage = overlayed
+            dissolve.time = Float(amount)
+            guard let mixed = dissolve.outputImage?.cropped(to: extent) else {
+                return nil
+            }
+
+            guard let outCG = context.createCGImage(mixed, from: extent) else {
+                return nil
+            }
+            let out = UIImage(
+                cgImage: outCG,
+                scale: input.scale,
+                orientation: input.imageOrientation
+            )
+            return out.pngData()
         }
     }
-
-    private func applyNoise(to data: Data, amount: Double) -> Data? {
-        guard let input = UIImage(data: data),
-              let cg = input.cgImage else { return nil }
-        let ciInput = CIImage(cgImage: cg)
-
-        let context = CIContext(options: nil)
-        let extent = ciInput.extent
-
-        // Random noise (grayscale)
-        let rng = CIFilter.randomGenerator()
-        guard let noiseBase = rng.outputImage?.cropped(to: extent) else { return nil }
-
-        // Desaturate noise to grayscale
-        let mono = CIFilter.colorControls()
-        mono.inputImage = noiseBase
-        mono.saturation = 0
-        guard let noiseGray = mono.outputImage else { return nil }
-
-        // Blend noise over the image with overlay blend (grain-like)
-        let overlay = CIFilter.overlayBlendMode()
-        overlay.inputImage = noiseGray
-        overlay.backgroundImage = ciInput
-        guard let overlayed = overlay.outputImage else { return nil }
-
-        // Mix original with overlay result by 'amount' using dissolve
-        let dissolve = CIFilter.dissolveTransition()
-        dissolve.inputImage = ciInput
-        dissolve.targetImage = overlayed
-        dissolve.time = Float(amount)
-        guard let mixed = dissolve.outputImage?.cropped(to: extent) else { return nil }
-
-        guard let outCG = context.createCGImage(mixed, from: extent) else { return nil }
-        let out = UIImage(cgImage: outCG, scale: input.scale, orientation: input.imageOrientation)
-        return out.pngData()
-    }
-}
 #endif
