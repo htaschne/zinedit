@@ -540,9 +540,13 @@ struct LayersSheet: View {
 
     private func title(for layer: EditorLayer) -> String {
         switch layer.content {
-        case .text: return "Text"
-        case .image: return "Image"
-        case .drawing: return "Drawing"
+        case .text(let t):
+            let s = t.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return s.isEmpty ? "Text" : s
+        case .image:
+            return "Image"
+        case .drawing:
+            return "Drawing"
         }
     }
 }
@@ -550,11 +554,53 @@ struct LayersSheet: View {
 struct LayerRowThumb: View {
     let layer: EditorLayer
     var body: some View {
-        LayerRenderView(layer: layer)
-            .opacity(layer.isHidden ? 0.35 : 1)
-            .background(Color(.secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(.separator), lineWidth: 1))
+        ZStack {
+            switch layer.content {
+            case .image(let imageModel):
+                if let ui = UIImage(data: imageModel.data) {
+                    Image(uiImage: ui)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Color.secondary
+                }
+            case .drawing(let drawingModel):
+                #if canImport(PencilKit)
+                if let pk = try? PKDrawing(data: drawingModel.data) {
+                    let rect = CGRect(origin: .zero, size: drawingModel.size)
+                    #if canImport(UIKit)
+                    let scale = UIScreen.main.scale
+                    #else
+                    let scale: CGFloat = 2.0
+                    #endif
+                    let ui = pk.image(from: rect, scale: scale)
+                    Image(uiImage: ui)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Color.secondary
+                }
+                #else
+                Color.secondary
+                #endif
+            case .text(let t):
+                Text(t.text)
+                    .font(.system(size: 12, weight: t.weight))
+                    .foregroundStyle(t.color)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.5)
+                    .multilineTextAlignment(.center)
+                    .padding(4)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .background(.thinMaterial)
+            }
+        }
+        .frame(width: 44, height: 44)
+        .clipped()
+        .opacity(layer.isHidden ? 0.35 : 1)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(.separator), lineWidth: 1))
     }
 }
 
