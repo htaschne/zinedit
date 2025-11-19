@@ -44,6 +44,18 @@ public struct EditorCanvasView: View {
         self.onChange = onChange
     }
 
+    public init(
+        restoredLayers: [EditorLayer],
+        config: EditorConfig = .init(),
+        onExport: ((UIImage) -> Void)? = nil,
+        onChange: (([EditorLayer]) -> Void)? = nil
+    ) {
+        self._layers = .constant(restoredLayers) // one-way binding; use onChange to persist changes
+        self.config = config
+        self.onExport = onExport
+        self.onChange = onChange
+    }
+
     public var body: some View {
         NavigationStack {
             ZStack {
@@ -276,7 +288,7 @@ public struct PaintConfig: Equatable {
 
 /// Vector drawing payload compatible with PencilKit's PKDrawing via `dataRepresentation()`.
 /// Store `size` as the base canvas size for accurate scaling during export.
-public struct DrawingModel: Equatable {
+public struct DrawingModel: Equatable, Codable {
     public var data: Data
     public var size: CGSize
 
@@ -305,7 +317,8 @@ public enum EditorRenderer {
     }
 }
 
-public struct EditorLayer: Identifiable, Equatable {
+public struct EditorLayer: Identifiable, Equatable, Codable {
+
     public var id: UUID
     public var content: EditorContent
     public var position: CGPoint
@@ -334,13 +347,75 @@ public struct EditorLayer: Identifiable, Equatable {
     }
 }
 
-public enum EditorContent: Equatable {
+extension EditorLayer {
+    private enum CodingKeys: String, CodingKey { case id, content, position, scale, rotationDegrees, isHidden }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try c.decode(UUID.self, forKey: .id)
+        self.content = try c.decode(EditorContent.self, forKey: .content)
+        self.position = try c.decode(CGPoint.self, forKey: .position)
+        self.scale = try c.decode(CGFloat.self, forKey: .scale)
+        let deg = try c.decode(Double.self, forKey: .rotationDegrees)
+        self.rotation = .degrees(deg)
+        self.isHidden = try c.decode(Bool.self, forKey: .isHidden)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(content, forKey: .content)
+        try c.encode(position, forKey: .position)
+        try c.encode(scale, forKey: .scale)
+        try c.encode(rotation.degrees, forKey: .rotationDegrees)
+        try c.encode(isHidden, forKey: .isHidden)
+    }
+}
+
+public enum EditorContent: Equatable, Codable {
     case text(TextModel)
     case image(ImageModel)
     case drawing(DrawingModel)
 }
 
-public struct TextModel: Equatable {
+extension EditorContent {
+    private enum CodingKeys: String, CodingKey { case type, text, image, drawing }
+    private enum Kind: String, Codable { case text, image, drawing }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let kind = try container.decode(Kind.self, forKey: .type)
+        switch kind {
+        case .text:
+            let value = try container.decode(TextModel.self, forKey: .text)
+            self = .text(value)
+        case .image:
+            let value = try container.decode(ImageModel.self, forKey: .image)
+            self = .image(value)
+        case .drawing:
+            let value = try container.decode(DrawingModel.self, forKey: .drawing)
+            self = .drawing(value)
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .text(let value):
+            try container.encode(Kind.text, forKey: .type)
+            try container.encode(value, forKey: .text)
+        case .image(let value):
+            try container.encode(Kind.image, forKey: .type)
+            try container.encode(value, forKey: .image)
+        case .drawing(let value):
+            try container.encode(Kind.drawing, forKey: .type)
+            try container.encode(value, forKey: .drawing)
+        }
+    }
+}
+
+public struct TextModel: Equatable, Codable {
+
     public var text: String
     public var fontSize: CGFloat
     public var color: Color
@@ -359,7 +434,29 @@ public struct TextModel: Equatable {
     }
 }
 
-public struct ImageModel: Equatable {
+extension TextModel {
+    private enum CodingKeys: String, CodingKey { case text, fontSize, color, weight }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.text = try c.decode(String.self, forKey: .text)
+        self.fontSize = try c.decode(CGFloat.self, forKey: .fontSize)
+        let rgba = try c.decode(RGBA.self, forKey: .color)
+        self.color = rgba.makeColor()
+        let w = try c.decode(String.self, forKey: .weight)
+        self.weight = Font.Weight.fromName(w)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(text, forKey: .text)
+        try c.encode(fontSize, forKey: .fontSize)
+        try c.encode(color.rgba(), forKey: .color)
+        try c.encode(weight.name, forKey: .weight)
+    }
+}
+
+public struct ImageModel: Equatable, Codable {
     public var data: Data
     public init(data: Data) { self.data = data }
 }
@@ -392,7 +489,7 @@ struct LayersSheet: View {
                             .lineLimit(1)
                             .foregroundStyle(selection == layer.id ? .primary : .secondary)
                         Spacer()
-                        Image(systemName: layer.isHidden ? "eye.slash" : "eye")
+                        Image(systemName: layer.isHidden ? "eye" : "eye.fill")
                             .foregroundStyle(.secondary)
                     }
                     .contentShape(Rectangle())
@@ -400,9 +497,12 @@ struct LayersSheet: View {
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button {
                             layer.isHidden.toggle()
+                            if layer.isHidden, selection == layer.id {
+                                selection = nil
+                            }
                         } label: {
                             if layer.isHidden {
-                                Label("Show", systemImage: "eye")
+                                Label("Show", systemImage: "eye.fill")
                             } else {
                                 Label("Hide", systemImage: "eye.slash")
                             }
@@ -739,3 +839,68 @@ struct LayerRowThumb: View {
         }
     }
 #endif
+
+// MARK: - Codable helpers
+
+struct RGBA: Codable {
+    var r: Double
+    var g: Double
+    var b: Double
+    var a: Double
+}
+
+extension Color {
+    func rgba() -> RGBA {
+        #if canImport(UIKit)
+        let ui = UIColor(self)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        ui.getRed(&r, green: &g, blue: &b, alpha: &a)
+        return RGBA(r: Double(r), g: Double(g), b: Double(b), a: Double(a))
+        #else
+        // Fallback: encode as opaque black if platform doesn't expose components
+        return RGBA(r: 0, g: 0, b: 0, a: 1)
+        #endif
+    }
+}
+
+extension RGBA {
+    func makeColor() -> Color {
+        #if canImport(UIKit)
+        return Color(UIColor(red: r, green: g, blue: b, alpha: a))
+        #else
+        return Color(red: r, green: g, blue: b, opacity: a)
+        #endif
+    }
+}
+
+extension Font.Weight {
+    var name: String {
+        switch self {
+        case .ultraLight: return "ultraLight"
+        case .thin: return "thin"
+        case .light: return "light"
+        case .regular: return "regular"
+        case .medium: return "medium"
+        case .semibold: return "semibold"
+        case .bold: return "bold"
+        case .heavy: return "heavy"
+        case .black: return "black"
+        default: return "regular"
+        }
+    }
+
+    static func fromName(_ name: String) -> Font.Weight {
+        switch name {
+        case "ultraLight": return .ultraLight
+        case "thin": return .thin
+        case "light": return .light
+        case "regular": return .regular
+        case "medium": return .medium
+        case "semibold": return .semibold
+        case "bold": return .bold
+        case "heavy": return .heavy
+        case "black": return .black
+        default: return .regular
+        }
+    }
+}
