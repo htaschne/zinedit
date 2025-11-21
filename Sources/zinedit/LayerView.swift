@@ -16,10 +16,14 @@ import SwiftUI
 
 struct LayerView: View {
     @Binding var layer: EditorLayer
+    var onBeginInteraction: (() -> Void)? = nil
 
     @State private var dragStart: CGPoint? = nil
     @State private var scaleStart: CGFloat? = nil
     @State private var rotationStart: Angle? = nil
+    @State private var beganDrag = false
+    @State private var beganScale = false
+    @State private var beganRotate = false
 
     var body: some View {
         content
@@ -29,6 +33,7 @@ struct LayerView: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
+                        if !beganDrag { beganDrag = true; onBeginInteraction?() }
                         if dragStart == nil { dragStart = layer.position }
                         if let start = dragStart {
                             layer.position = CGPoint(
@@ -37,21 +42,23 @@ struct LayerView: View {
                             )
                         }
                     }
-                    .onEnded { _ in dragStart = nil }
+                    .onEnded { _ in beganDrag = false; dragStart = nil }
             )
             .simultaneousGesture(
                 MagnificationGesture()
                     .onChanged { value in
+                        if !beganScale { beganScale = true; onBeginInteraction?() }
                         if scaleStart == nil { scaleStart = layer.scale }
                         if let base = scaleStart {
                             layer.scale = max(0.2, base * value)
                         }
                     }
-                    .onEnded { _ in scaleStart = nil }
+                    .onEnded { _ in beganScale = false; scaleStart = nil }
             )
             .simultaneousGesture(
                 RotationGesture()
                     .onChanged { value in
+                        if !beganRotate { beganRotate = true; onBeginInteraction?() }
                         if rotationStart == nil {
                             rotationStart = layer.rotation
                         }
@@ -59,7 +66,7 @@ struct LayerView: View {
                             layer.rotation = base + value
                         }
                     }
-                    .onEnded { _ in rotationStart = nil }
+                    .onEnded { _ in beganRotate = false; rotationStart = nil }
             )
     }
 

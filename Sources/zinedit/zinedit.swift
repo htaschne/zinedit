@@ -65,7 +65,7 @@ public struct EditorCanvasView: View {
                     ZStack {
                         ForEach($model.layers) { $layer in
                             if !layer.isHidden {
-                                LayerView(layer: $layer)
+                                LayerView(layer: $layer, onBeginInteraction: { model.registerUndoPoint() })
                                     .onTapGesture { model.select(layer.id) }
                                     .simultaneousGesture(
                                         TapGesture(count: 2).onEnded {
@@ -170,6 +170,20 @@ public struct EditorCanvasView: View {
                         }
                     }
                     Spacer()
+                    // Undo / Redo
+                    Button {
+                        model.undo()
+                    } label: {
+                        Label("Undo", systemImage: "arrow.uturn.backward")
+                    }
+                    .disabled(!model.canUndo)
+
+                    Button {
+                        model.redo()
+                    } label: {
+                        Label("Redo", systemImage: "arrow.uturn.forward")
+                    }
+                    .disabled(!model.canRedo)
                     // Trash button shown only when a layer is selected
                     if model.selection != nil {
                         Button(role: .destructive) {
@@ -203,17 +217,17 @@ public struct EditorCanvasView: View {
                     if let $layer = selectedDrawingBinding,
                         let paint = config.paint
                     {
-                        DrawingEditSheet(layer: $layer, config: paint)
+                        DrawingEditSheet(layer: $layer, config: paint, onApply: { model.registerUndoPoint() })
                     }
                 }
             #endif
             .sheet(isPresented: $showNoiseSheet) {
                 if let $layer = selectedImageBinding {
-                    NoiseEditSheet(layer: $layer)
+                    NoiseEditSheet(layer: $layer, onApply: { model.registerUndoPoint() })
                 }
             }
             .sheet(isPresented: $showLayersSheet) {
-                LayersSheet(layers: $model.layers, selection: $model.selection)
+                LayersSheet(layers: $model.layers, selection: $model.selection, onChange: { model.registerUndoPoint() })
             }
             .onChange(of: model.photoSelection) { _, _ in
                 Task { @MainActor in
@@ -505,6 +519,7 @@ struct LayersSheet: View {
     @Binding var layers: [EditorLayer]
     @Binding var selection: UUID?
     @Environment(\.dismiss) private var dismiss
+    var onChange: (() -> Void)? = nil
 
     var body: some View {
         NavigationStack {
@@ -521,6 +536,7 @@ struct LayersSheet: View {
                             )
                         Spacer()
                         Button {
+                            onChange?()
                             layers[idx].isHidden.toggle()
                             if layers[idx].isHidden, selection == layer.id {
                                 selection = nil
@@ -541,6 +557,7 @@ struct LayersSheet: View {
                     .onTapGesture { selection = layer.id }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button {
+                            onChange?()
                             layers[idx].isHidden.toggle()
                             if layers[idx].isHidden, selection == layer.id {
                                 selection = nil
@@ -663,6 +680,7 @@ struct LayerRowThumb: View {
         @State private var data: Data = Data()
         @State private var selectedBrushIndex: Int = 0
         @State private var erasing: Bool = false
+        var onApply: (() -> Void)? = nil
 
         private var baseSize: CGSize {
             if case .drawing(let m) = layer.content { return m.size }
@@ -720,6 +738,7 @@ struct LayerRowThumb: View {
                 .toolbar(content: {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Apply") {
+                            onApply?()
                             layer.content = .drawing(
                                 DrawingModel(data: data, size: baseSize)
                             )
@@ -817,6 +836,7 @@ struct LayerRowThumb: View {
         @State private var intensityPercent: Double = 30  // 0...100
         @State private var previewImage: UIImage?
         @State private var originalData: Data = Data()
+        var onApply: (() -> Void)? = nil
 
         var body: some View {
             NavigationStack {
@@ -874,6 +894,7 @@ struct LayerRowThumb: View {
                                 dismiss()
                                 return
                             }
+                            onApply?()
                             layer.content = .image(ImageModel(data: data))
                             dismiss()
                         }
