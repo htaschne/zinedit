@@ -50,7 +50,7 @@ public struct EditorCanvasView: View {
         onExport: ((UIImage) -> Void)? = nil,
         onChange: (([EditorLayer]) -> Void)? = nil
     ) {
-        self._layers = .constant(restoredLayers) // one-way binding; use onChange to persist changes
+        self._layers = .constant(restoredLayers)  // one-way binding; use onChange to persist changes
         self.config = config
         self.onExport = onExport
         self.onChange = onChange
@@ -77,7 +77,8 @@ public struct EditorCanvasView: View {
                                             case .drawing:
                                                 #if canImport(PencilKit)
                                                     model.select(layer.id)
-                                                    selectedDrawingBinding = $layer
+                                                    selectedDrawingBinding =
+                                                        $layer
                                                     showDrawingSheet = true
                                                 #endif
                                             default:
@@ -86,12 +87,17 @@ public struct EditorCanvasView: View {
                                         }
                                     )
                                     .overlay {
-                                        if model.selection == layer.id && !layer.isHidden {
+                                        if model.selection == layer.id
+                                            && !layer.isHidden
+                                        {
                                             SelectionBox()
                                                 .allowsHitTesting(false)
                                                 .scaleEffect(layer.scale)
                                                 .rotationEffect(layer.rotation)
-                                                .offset(x: layer.position.x, y: layer.position.y)
+                                                .offset(
+                                                    x: layer.position.x,
+                                                    y: layer.position.y
+                                                )
                                         }
                                     }
                             }
@@ -115,7 +121,9 @@ public struct EditorCanvasView: View {
                 ToolbarItemGroup(placement: .bottomBar) {
                     Button {
                         model.addText()
-                        if let id = model.selection, let binding = bindingForLayer(id) {
+                        if let id = model.selection,
+                            let binding = bindingForLayer(id)
+                        {
                             selectedTextBinding = binding
                             showTextSheet = true
                         }
@@ -165,7 +173,10 @@ public struct EditorCanvasView: View {
                     Button {
                         showLayersSheet = true
                     } label: {
-                        Label("Layers", systemImage: "square.3.layers.3d.top.filled")
+                        Label(
+                            "Layers",
+                            systemImage: "square.3.layers.3d.top.filled"
+                        )
                     }
                     Button {
                         export()
@@ -325,7 +336,7 @@ public struct EditorLayer: Identifiable, Equatable, Codable {
     public var scale: CGFloat
     public var rotation: Angle
     public var isHidden: Bool
-    
+
     public init(
         id: UUID = UUID(),
         content: EditorContent,
@@ -348,7 +359,9 @@ public struct EditorLayer: Identifiable, Equatable, Codable {
 }
 
 extension EditorLayer {
-    private enum CodingKeys: String, CodingKey { case id, content, position, scale, rotationDegrees, isHidden }
+    private enum CodingKeys: String, CodingKey {
+        case id, content, position, scale, rotationDegrees, isHidden
+    }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -379,7 +392,9 @@ public enum EditorContent: Equatable, Codable {
 }
 
 extension EditorContent {
-    private enum CodingKeys: String, CodingKey { case type, text, image, drawing }
+    private enum CodingKeys: String, CodingKey {
+        case type, text, image, drawing
+    }
     private enum Kind: String, Codable { case text, image, drawing }
 
     public init(from decoder: Decoder) throws {
@@ -393,7 +408,10 @@ extension EditorContent {
             let value = try container.decode(ImageModel.self, forKey: .image)
             self = .image(value)
         case .drawing:
-            let value = try container.decode(DrawingModel.self, forKey: .drawing)
+            let value = try container.decode(
+                DrawingModel.self,
+                forKey: .drawing
+            )
             self = .drawing(value)
         }
     }
@@ -435,7 +453,9 @@ public struct TextModel: Equatable, Codable {
 }
 
 extension TextModel {
-    private enum CodingKeys: String, CodingKey { case text, fontSize, color, weight }
+    private enum CodingKeys: String, CodingKey {
+        case text, fontSize, color, weight
+    }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -481,14 +501,16 @@ struct LayersSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(layers.indices, id: \.self) { idx in
+                ForEach(Array(layers.indices).reversed(), id: \.self) { idx in
                     let layer = layers[idx]
                     HStack(spacing: 12) {
                         LayerRowThumb(layer: layer)
                             .frame(width: 44, height: 44)
                         Text(title(for: layer))
                             .lineLimit(1)
-                            .foregroundStyle(selection == layer.id ? .primary : .secondary)
+                            .foregroundStyle(
+                                selection == layer.id ? .primary : .secondary
+                            )
                         Spacer()
                         Button {
                             layers[idx].isHidden.toggle()
@@ -496,11 +518,16 @@ struct LayersSheet: View {
                                 selection = nil
                             }
                         } label: {
-                            Image(systemName: layers[idx].isHidden ? "eye.slash" : "eye")
-                                .foregroundStyle(.secondary)
+                            Image(
+                                systemName: layers[idx].isHidden
+                                    ? "eye.slash" : "eye"
+                            )
+                            .foregroundStyle(.secondary)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(layers[idx].isHidden ? "Show layer" : "Hide layer")
+                        .accessibilityLabel(
+                            layers[idx].isHidden ? "Show layer" : "Hide layer"
+                        )
                     }
                     .contentShape(Rectangle())
                     .onTapGesture { selection = layer.id }
@@ -535,7 +562,11 @@ struct LayersSheet: View {
     }
 
     private func move(from source: IndexSet, to destination: Int) {
-        layers.move(fromOffsets: source, toOffset: destination)
+        let count = layers.count
+        // Map displayed (reversed) indices to the original array indices.
+        let mappedSource = IndexSet(source.map { count - 1 - $0 })
+        let mappedDestination = count - destination
+        layers.move(fromOffsets: mappedSource, toOffset: mappedDestination)
     }
 
     private func title(for layer: EditorLayer) -> String {
@@ -566,22 +597,25 @@ struct LayerRowThumb: View {
                 }
             case .drawing(let drawingModel):
                 #if canImport(PencilKit)
-                if let pk = try? PKDrawing(data: drawingModel.data) {
-                    let rect = CGRect(origin: .zero, size: drawingModel.size)
-                    #if canImport(UIKit)
-                    let scale = UIScreen.main.scale
-                    #else
-                    let scale: CGFloat = 2.0
-                    #endif
-                    let ui = pk.image(from: rect, scale: scale)
-                    Image(uiImage: ui)
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    Color.secondary
-                }
+                    if let pk = try? PKDrawing(data: drawingModel.data) {
+                        let rect = CGRect(
+                            origin: .zero,
+                            size: drawingModel.size
+                        )
+                        #if canImport(UIKit)
+                            let scale = UIScreen.main.scale
+                        #else
+                            let scale: CGFloat = 2.0
+                        #endif
+                        let ui = pk.image(from: rect, scale: scale)
+                        Image(uiImage: ui)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Color.secondary
+                    }
                 #else
-                Color.secondary
+                    Color.secondary
                 #endif
             case .text(let t):
                 Text(t.text)
@@ -591,7 +625,11 @@ struct LayerRowThumb: View {
                     .minimumScaleFactor(0.5)
                     .multilineTextAlignment(.center)
                     .padding(4)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: .center
+                    )
                     .background(.thinMaterial)
             }
         }
@@ -600,7 +638,12 @@ struct LayerRowThumb: View {
         .opacity(layer.isHidden ? 0.35 : 1)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 6))
-        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(.separator), lineWidth: 1))
+        .overlay(
+            RoundedRectangle(cornerRadius: 6).stroke(
+                Color(.separator),
+                lineWidth: 1
+            )
+        )
     }
 }
 
@@ -908,13 +951,16 @@ struct RGBA: Codable {
 extension Color {
     func rgba() -> RGBA {
         #if canImport(UIKit)
-        let ui = UIColor(self)
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        ui.getRed(&r, green: &g, blue: &b, alpha: &a)
-        return RGBA(r: Double(r), g: Double(g), b: Double(b), a: Double(a))
+            let ui = UIColor(self)
+            var r: CGFloat = 0
+            var g: CGFloat = 0
+            var b: CGFloat = 0
+            var a: CGFloat = 0
+            ui.getRed(&r, green: &g, blue: &b, alpha: &a)
+            return RGBA(r: Double(r), g: Double(g), b: Double(b), a: Double(a))
         #else
-        // Fallback: encode as opaque black if platform doesn't expose components
-        return RGBA(r: 0, g: 0, b: 0, a: 1)
+            // Fallback: encode as opaque black if platform doesn't expose components
+            return RGBA(r: 0, g: 0, b: 0, a: 1)
         #endif
     }
 }
@@ -922,9 +968,9 @@ extension Color {
 extension RGBA {
     func makeColor() -> Color {
         #if canImport(UIKit)
-        return Color(UIColor(red: r, green: g, blue: b, alpha: a))
+            return Color(UIColor(red: r, green: g, blue: b, alpha: a))
         #else
-        return Color(red: r, green: g, blue: b, opacity: a)
+            return Color(red: r, green: g, blue: b, opacity: a)
         #endif
     }
 }
