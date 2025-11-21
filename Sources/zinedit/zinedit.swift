@@ -240,9 +240,9 @@ public struct EditorCanvasView: View {
             }
             .sheet(isPresented: $showLayersSheet) {
                 LayersSheet(layers: $model.layers, selection: $model.selection, onChange: { model.registerUndoPoint() })
+                    .presentationDetents([.fraction(0.5), .large])
+                    .presentationDragIndicator(.visible)
             }
-            .presentationDetents([.fraction(0.5), .large])
-            .presentationDragIndicator(.visible)
             .onChange(of: model.photoSelection) { _, _ in
                 Task { @MainActor in
                     await model.loadSelectedPhoto()
@@ -590,9 +590,6 @@ struct LayersSheet: View {
             .environment(\.editMode, .constant(.active))
             .navigationTitle("Layers")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    EditButton()
-                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") { dismiss() }
                 }
