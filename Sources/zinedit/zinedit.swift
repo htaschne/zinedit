@@ -118,6 +118,15 @@ public struct EditorCanvasView: View {
                 }
             }
             .toolbar(content: {
+                // Top-right Share button
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        export()
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .accessibilityLabel("Share")
+                }
                 ToolbarItemGroup(placement: .bottomBar) {
                     Button {
                         model.addText()
@@ -199,11 +208,6 @@ public struct EditorCanvasView: View {
                             "Layers",
                             systemImage: "square.3.layers.3d.top.filled"
                         )
-                    }
-                    Button {
-                        export()
-                    } label: {
-                        Label("Export", systemImage: "square.and.arrow.up")
                     }
                 }
             })
