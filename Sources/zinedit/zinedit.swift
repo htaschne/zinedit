@@ -20,6 +20,7 @@ public struct EditorCanvasView: View {
 
     @StateObject private var model = EditorModel()
     @Environment(\.undoManager) private var undoManager
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     @State private var showTextSheet = false
     #if canImport(PencilKit)
@@ -163,37 +164,9 @@ public struct EditorCanvasView: View {
                             }
                         }
                     #endif
-                    // Noise button for image layers
-                    if let id = model.selection,
-                        let index = model.indexOfLayer(id)
-                    {
-                        if case .image = model.layers[index].content {
-                            Button {
-                                if let binding = bindingForLayer(id) {
-                                    selectedImageBinding = binding
-                                    showNoiseSheet = true
-                                }
-                            } label: {
-                                Label("Noise", systemImage: "pencil.tip")
-                            }
-                        }
-                    }
                     Spacer()
-                    // Undo / Redo
-                    Button {
-                        model.undo()
-                    } label: {
-                        Label("Undo", systemImage: "arrow.uturn.backward")
-                    }
-                    .disabled(!model.canUndo)
 
-                    Button {
-                        model.redo()
-                    } label: {
-                        Label("Redo", systemImage: "arrow.uturn.forward")
-                    }
-                    .disabled(!model.canRedo)
-                    // Trash button shown only when a layer is selected
+                    // Keep Trash visible when there is a selection
                     if model.selection != nil {
                         Button(role: .destructive) {
                             model.deleteSelected()
@@ -201,13 +174,48 @@ public struct EditorCanvasView: View {
                             Label("Delete", systemImage: "trash")
                         }
                     }
-                    Button {
-                        showLayersSheet = true
+
+                    // Collapse Undo/Redo/Layers (+ Noise when applicable) into a single menu
+                    Menu {
+                        // Noise for selected image layer
+                        if let id = model.selection,
+                           let index = model.indexOfLayer(id),
+                           case .image = model.layers[index].content {
+                            Button {
+                                if let binding = bindingForLayer(id) {
+                                    selectedImageBinding = binding
+                                    showNoiseSheet = true
+                                }
+                            } label: {
+                                Label("Noise…", systemImage: "slider.horizontal.3")
+                            }
+                        }
+
+                        // Undo / Redo
+                        Button {
+                            model.undo()
+                        } label: {
+                            Label("Undo", systemImage: "arrow.uturn.backward")
+                        }
+                        .disabled(!model.canUndo)
+
+                        Button {
+                            model.redo()
+                        } label: {
+                            Label("Redo", systemImage: "arrow.uturn.forward")
+                        }
+                        .disabled(!model.canRedo)
+
+                        Divider()
+
+                        // Layers list
+                        Button {
+                            showLayersSheet = true
+                        } label: {
+                            Label("Layers", systemImage: "square.3.layers.3d.top.filled")
+                        }
                     } label: {
-                        Label(
-                            "Layers",
-                            systemImage: "square.3.layers.3d.top.filled"
-                        )
+                        Label("More", systemImage: "ellipsis.circle")
                     }
                 }
             })
