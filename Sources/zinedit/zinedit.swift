@@ -170,6 +170,14 @@ public struct EditorCanvasView: View {
                         }
                     }
                     Spacer()
+                    // Trash button shown only when a layer is selected
+                    if model.selection != nil {
+                        Button(role: .destructive) {
+                            model.deleteSelected()
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
                     Button {
                         showLayersSheet = true
                     } label: {
