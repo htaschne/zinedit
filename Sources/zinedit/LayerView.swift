@@ -73,15 +73,23 @@ struct LayerView: View {
     @ViewBuilder
     private var content: some View {
         switch layer.content {
-        case .text(let text):
-            Text(text.text)
-                .font(.system(size: text.fontSize, weight: text.weight))
-                .foregroundStyle(text.color)
-                .padding(8)
-                .background(
-                    .thinMaterial,
-                    in: RoundedRectangle(cornerRadius: 8)
-                )
+        case .text(let m):
+            Group {
+                if let name = m.fontName, !name.isEmpty {
+                    Text(m.text)
+                        .font(.custom(name, size: m.fontSize))
+                        .foregroundStyle(m.color)
+                } else {
+                    Text(m.text)
+                        .font(.system(size: m.fontSize, weight: m.weight))
+                        .foregroundStyle(m.color)
+                }
+            }
+            .padding(8)
+            .background(
+                .thinMaterial,
+                in: RoundedRectangle(cornerRadius: 8)
+            )
         case .image(let image):
             if let uiImage = UIImage(data: image.data) {
                 Image(uiImage: uiImage)

@@ -232,7 +232,7 @@ public struct EditorCanvasView: View {
             })
             .sheet(isPresented: $showTextSheet) {
                 if let $layer = selectedTextBinding {
-                    TextEditSheet(layer: $layer)
+                    TextEditSheet(layer: $layer, onApply: { model.registerUndoPoint() })
                 }
             }
             #if canImport(PencilKit)
@@ -485,23 +485,26 @@ public struct TextModel: Equatable, Codable {
     public var fontSize: CGFloat
     public var color: Color
     public var weight: Font.Weight
+    public var fontName: String?
 
     public init(
         text: String,
         fontSize: CGFloat = 28,
         color: Color = .primary,
-        weight: Font.Weight = .bold
+        weight: Font.Weight = .bold,
+        fontName: String? = nil
     ) {
         self.text = text
         self.fontSize = fontSize
         self.color = color
         self.weight = weight
+        self.fontName = fontName
     }
 }
 
 extension TextModel {
     private enum CodingKeys: String, CodingKey {
-        case text, fontSize, color, weight
+        case text, fontSize, color, weight, fontName
     }
 
     public init(from decoder: Decoder) throws {
@@ -512,6 +515,7 @@ extension TextModel {
         self.color = rgba.makeColor()
         let w = try c.decode(String.self, forKey: .weight)
         self.weight = Font.Weight.fromName(w)
+        self.fontName = try c.decodeIfPresent(String.self, forKey: .fontName)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -520,6 +524,7 @@ extension TextModel {
         try c.encode(fontSize, forKey: .fontSize)
         try c.encode(color.rgba(), forKey: .color)
         try c.encode(weight.name, forKey: .weight)
+        try c.encodeIfPresent(fontName, forKey: .fontName)
     }
 }
 
@@ -669,8 +674,7 @@ struct LayerRowThumb: View {
                     Color.secondary
                 #endif
             case .text(let t):
-                Text(t.text)
-                    .font(.system(size: 12, weight: t.weight))
+                let base = Text(t.text)
                     .foregroundStyle(t.color)
                     .lineLimit(2)
                     .minimumScaleFactor(0.5)
@@ -682,6 +686,14 @@ struct LayerRowThumb: View {
                         alignment: .center
                     )
                     .background(.thinMaterial)
+
+                if let name = t.fontName, !name.isEmpty {
+                    base
+                        .font(.custom(name, size: 12))
+                } else {
+                    base
+                        .font(.system(size: 12, weight: t.weight))
+                }
             }
         }
         .frame(width: 44, height: 44)

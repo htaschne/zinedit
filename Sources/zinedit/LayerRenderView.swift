@@ -19,9 +19,15 @@ struct LayerRenderView: View {
         Group {
             switch layer.content {
             case .text(let text):
-                Text(text.text)
-                    .font(.system(size: text.fontSize, weight: text.weight))
-                    .foregroundStyle(text.color)
+                if let name = text.fontName, !name.isEmpty {
+                    Text(text.text)
+                        .font(.custom(name, size: text.fontSize))
+                        .foregroundStyle(text.color)
+                } else {
+                    Text(text.text)
+                        .font(.system(size: text.fontSize, weight: text.weight))
+                        .foregroundStyle(text.color)
+                }
             case .image(let image):
                 if let uiImage = UIImage(data: image.data) {
                     Image(uiImage: uiImage)
