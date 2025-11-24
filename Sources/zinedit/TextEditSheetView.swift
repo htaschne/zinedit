@@ -36,15 +36,6 @@ struct TextEditSheet: View {
                             }
                     }
                     Section("Style") {
-                        Stepper(
-                            "Font size \(Int(fontSize))",
-                            value: $fontSize,
-                            in: 12...128
-                        )
-                        Toggle("Bold", isOn: $isBold)
-                        ColorPicker("Color", selection: $color)
-                    }
-                    Section("Font") {
                         Menu {
                             Picker("Font", selection: $selectedFontName) {
                                 Text("System").tag("System")
@@ -69,6 +60,14 @@ struct TextEditSheet: View {
                             .padding(.vertical, 6)
                             .accessibilityIdentifier("fontMenu")
                         }
+
+                        Stepper(
+                            "Font size \(Int(fontSize))",
+                            value: $fontSize,
+                            in: 2...128
+                        )
+                        Toggle("Bold", isOn: $isBold)
+                        ColorPicker("Color", selection: $color)
                     }
                     Section("Preview") {
                         Text(text)
