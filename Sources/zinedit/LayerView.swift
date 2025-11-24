@@ -75,13 +75,21 @@ struct LayerView: View {
         switch layer.content {
         case .text(let m):
             Group {
-                if let name = m.fontName, !name.isEmpty {
+                let font: Font = {
+                    if let name = m.fontName, !name.isEmpty {
+                        return .custom(name, size: m.fontSize)
+                    } else {
+                        return .system(size: m.fontSize, weight: m.weight)
+                    }
+                }()
+                if m.isItalic {
                     Text(m.text)
-                        .font(.custom(name, size: m.fontSize))
+                        .font(font)
+                        .italic()
                         .foregroundStyle(m.color)
                 } else {
                     Text(m.text)
-                        .font(.system(size: m.fontSize, weight: m.weight))
+                        .font(font)
                         .foregroundStyle(m.color)
                 }
             }

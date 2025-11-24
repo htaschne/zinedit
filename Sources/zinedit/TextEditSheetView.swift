@@ -16,6 +16,7 @@ struct TextEditSheet: View {
     @State private var text: String = ""
     @State private var fontSize: Double = 28
     @State private var isBold = true
+    @State private var isItalic = false
     @State private var color: Color = .primary
     var onApply: (() -> Void)? = nil
     @State private var allFontNames: [String] = []
@@ -66,17 +67,40 @@ struct TextEditSheet: View {
                             value: $fontSize,
                             in: 2...128
                         )
-                        Toggle("Bold", isOn: $isBold)
+                        HStack(spacing: 8) {
+                            Toggle("B", isOn: $isBold)
+                                .toggleStyle(.button)
+                                .buttonStyle(.bordered)
+                                .buttonBorderShape(.capsule)
+                                .font(.headline)
+                                .accessibilityIdentifier("boldToggle")
+                            Toggle("I", isOn: $isItalic)
+                                .toggleStyle(.button)
+                                .buttonStyle(.bordered)
+                                .buttonBorderShape(.capsule)
+                                .font(.headline)
+                                .accessibilityIdentifier("italicToggle")
+                        }
                         ColorPicker("Color", selection: $color)
                     }
                     Section("Preview") {
-                        Text(text)
-                            .font(selectedFontName == "System"
-                                  ? .system(size: fontSize, weight: isBold ? .bold : .regular)
-                                  : .custom(selectedFontName, size: fontSize))
-                            .foregroundStyle(color)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
+                        let baseFont: Font = (selectedFontName == "System")
+                            ? .system(size: fontSize, weight: isBold ? .bold : .regular)
+                            : .custom(selectedFontName, size: fontSize)
+
+                        Group {
+                            if isItalic {
+                                Text(text)
+                                    .font(baseFont)
+                                    .italic()
+                            } else {
+                                Text(text)
+                                    .font(baseFont)
+                            }
+                        }
+                        .foregroundStyle(color)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
                     }
                 }
             }

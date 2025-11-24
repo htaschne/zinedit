@@ -486,25 +486,28 @@ public struct TextModel: Equatable, Codable {
     public var color: Color
     public var weight: Font.Weight
     public var fontName: String?
+    public var isItalic: Bool
 
     public init(
         text: String,
         fontSize: CGFloat = 28,
         color: Color = .primary,
         weight: Font.Weight = .bold,
-        fontName: String? = nil
+        fontName: String? = nil,
+        isItalic: Bool = false
     ) {
         self.text = text
         self.fontSize = fontSize
         self.color = color
         self.weight = weight
         self.fontName = fontName
+        self.isItalic = isItalic
     }
 }
 
 extension TextModel {
     private enum CodingKeys: String, CodingKey {
-        case text, fontSize, color, weight, fontName
+        case text, fontSize, color, weight, fontName, isItalic
     }
 
     public init(from decoder: Decoder) throws {
@@ -516,6 +519,7 @@ extension TextModel {
         let w = try c.decode(String.self, forKey: .weight)
         self.weight = Font.Weight.fromName(w)
         self.fontName = try c.decodeIfPresent(String.self, forKey: .fontName)
+        self.isItalic = try c.decodeIfPresent(Bool.self, forKey: .isItalic) ?? false
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -525,6 +529,7 @@ extension TextModel {
         try c.encode(color.rgba(), forKey: .color)
         try c.encode(weight.name, forKey: .weight)
         try c.encodeIfPresent(fontName, forKey: .fontName)
+        try c.encode(isItalic, forKey: .isItalic)
     }
 }
 

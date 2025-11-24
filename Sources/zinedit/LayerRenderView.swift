@@ -19,14 +19,29 @@ struct LayerRenderView: View {
         Group {
             switch layer.content {
             case .text(let text):
+                let italic = textIsItalic(text)
                 if let name = text.fontName, !name.isEmpty {
-                    Text(text.text)
-                        .font(.custom(name, size: text.fontSize))
-                        .foregroundStyle(text.color)
+                    if italic {
+                        Text(text.text)
+                            .font(.custom(name, size: text.fontSize))
+                            .foregroundStyle(text.color)
+                            .italic()
+                    } else {
+                        Text(text.text)
+                            .font(.custom(name, size: text.fontSize))
+                            .foregroundStyle(text.color)
+                    }
                 } else {
-                    Text(text.text)
-                        .font(.system(size: text.fontSize, weight: text.weight))
-                        .foregroundStyle(text.color)
+                    if italic {
+                        Text(text.text)
+                            .font(.system(size: text.fontSize, weight: text.weight))
+                            .foregroundStyle(text.color)
+                            .italic()
+                    } else {
+                        Text(text.text)
+                            .font(.system(size: text.fontSize, weight: text.weight))
+                            .foregroundStyle(text.color)
+                    }
                 }
             case .image(let image):
                 if let uiImage = UIImage(data: image.data) {
@@ -61,4 +76,15 @@ struct LayerRenderView: View {
         .rotationEffect(layer.rotation)
         .offset(x: layer.position.x, y: layer.position.y)
     }
+}
+
+// Helper: checks for a Bool `isItalic` on TextModel without requiring the property to exist at compile-time.
+private func textIsItalic(_ t: TextModel) -> Bool {
+    let mirror = Mirror(reflecting: t)
+    for child in mirror.children {
+        if child.label == "isItalic", let b = child.value as? Bool {
+            return b
+        }
+    }
+    return false
 }
