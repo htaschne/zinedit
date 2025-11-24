@@ -67,19 +67,9 @@ struct TextEditSheet: View {
                             value: $fontSize,
                             in: 2...128
                         )
-                        HStack(spacing: 8) {
-                            Toggle("B", isOn: $isBold)
-                                .toggleStyle(.button)
-                                .buttonStyle(.bordered)
-                                .buttonBorderShape(.capsule)
-                                .font(.headline)
-                                .accessibilityIdentifier("boldToggle")
-                            Toggle("I", isOn: $isItalic)
-                                .toggleStyle(.button)
-                                .buttonStyle(.bordered)
-                                .buttonBorderShape(.capsule)
-                                .font(.headline)
-                                .accessibilityIdentifier("italicToggle")
+                        LabeledContent("Font style") {
+                            FontStyleSegmented(isBold: $isBold, isItalic: $isItalic)
+                                .accessibilityIdentifier("fontStyleSegmented")
                         }
                         ColorPicker("Color", selection: $color)
                     }
@@ -126,7 +116,8 @@ struct TextEditSheet: View {
                                 fontSize: CGFloat(fontSize),
                                 color: color,
                                 weight: isBold ? .bold : .regular,
-                                fontName: chosen
+                                fontName: chosen,
+                                isItalic: isItalic
                             )
                         )
                         dismiss()
@@ -141,5 +132,50 @@ struct TextEditSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+}
+
+// Segmented control for Bold / Italic styled like a capsule with dividers.
+private struct FontStyleSegmented: View {
+    @Binding var isBold: Bool
+    @Binding var isItalic: Bool
+
+    var body: some View {
+        HStack(spacing: 0) {
+            segment(title: "B", active: isBold, italic: false) { isBold.toggle() }
+            separator
+            segment(title: "I", active: isItalic, italic: true) { isItalic.toggle() }
+        }
+        .padding(2)
+        .background(Color(.systemGray6))
+        .clipShape(Capsule())
+    }
+
+    private var separator: some View {
+        Rectangle()
+            .fill(Color.secondary.opacity(0.25))
+            .frame(width: 1, height: 20)
+            .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private func segment(title: String, active: Bool, italic: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            let label = Text(title)
+                .font(.headline)
+            Group {
+                if italic {
+                    label.italic()
+                } else {
+                    label
+                }
+            }
+            .frame(minWidth: 36, minHeight: 40)
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(active ? .primary : .secondary)
+        .background(active ? Color(.systemGray4) : .clear)
     }
 }
