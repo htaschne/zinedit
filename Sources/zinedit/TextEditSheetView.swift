@@ -19,8 +19,8 @@ struct TextEditSheet: View {
     @State private var isItalic = false
     @State private var color: Color = .primary
     var onApply: (() -> Void)? = nil
-    @State private var allFontNames: [String] = []
-    @State private var selectedFontName: String = "System"
+    @State private var allFontFamilies: [String] = []
+    @State private var selectedFontFamily: String = "System"
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -38,20 +38,22 @@ struct TextEditSheet: View {
                     }
                     Section("Style") {
                         Menu {
-                            Picker("Font", selection: $selectedFontName) {
+                            Picker("Font", selection: $selectedFontFamily) {
                                 Text("System").tag("System")
-                                ForEach(allFontNames, id: \.self) { name in
-                                    Text(name).font(.custom(name, size: 16)).tag(name)
+                                ForEach(allFontFamilies, id: \.self) { family in
+                                    Text(family)
+                                        .font(.custom(postscriptName(forFamily: family, bold: false, italic: false) ?? family, size: 16))
+                                        .tag(family)
                                 }
                             }
                             .accessibilityIdentifier("fontPicker")
                         } label: {
                             HStack {
-                                if selectedFontName == "System" {
+                                if selectedFontFamily == "System" {
                                     Text("System")
                                 } else {
-                                    Text(selectedFontName)
-                                        .font(.custom(selectedFontName, size: 16))
+                                    Text(selectedFontFamily)
+                                        .font(.custom(postscriptName(forFamily: selectedFontFamily, bold: false, italic: false) ?? selectedFontFamily, size: 16))
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.up.chevron.down")
@@ -74,18 +76,20 @@ struct TextEditSheet: View {
                         ColorPicker("Color", selection: $color)
                     }
                     Section("Preview") {
-                        let baseFont: Font = (selectedFontName == "System")
-                            ? .system(size: fontSize, weight: isBold ? .bold : .regular)
-                            : .custom(selectedFontName, size: fontSize)
+                        let font: Font = {
+                            if selectedFontFamily == "System" {
+                                return .system(size: fontSize, weight: isBold ? .bold : .regular)
+                            } else {
+                                let ps = postscriptName(forFamily: selectedFontFamily, bold: isBold, italic: isItalic)
+                                return .custom(ps ?? selectedFontFamily, size: fontSize)
+                            }
+                        }()
 
                         Group {
-                            if isItalic {
-                                Text(text)
-                                    .font(baseFont)
-                                    .italic()
+                            if selectedFontFamily == "System" && isItalic {
+                                Text(text).font(font).italic()
                             } else {
-                                Text(text)
-                                    .font(baseFont)
+                                Text(text).font(font)
                             }
                         }
                         .foregroundStyle(color)
@@ -97,10 +101,27 @@ struct TextEditSheet: View {
             .onAppear {
                 #if canImport(UIKit)
                 let families = UIFont.familyNames.sorted()
-                allFontNames = families.flatMap { UIFont.fontNames(forFamilyName: $0) }.sorted()
+                allFontFamilies = families
                 #endif
                 if case .text(let t) = layer.content {
-                    selectedFontName = t.fontName ?? "System"
+                    if let name = t.fontName, !name.isEmpty {
+                        #if canImport(UIKit)
+                        if let ui = UIFont(name: name, size: 16) {
+                            selectedFontFamily = ui.familyName
+                        } else {
+                            selectedFontFamily = name // assume it was already a family
+                        }
+                        #else
+                        selectedFontFamily = name
+                        #endif
+                    } else {
+                        selectedFontFamily = "System"
+                    }
+                    text = t.text
+                    fontSize = Double(t.fontSize)
+                    isBold = (t.weight == .bold)
+                    isItalic = t.isItalic
+                    color = t.color
                 }
             }
             .accessibilityIdentifier("textEditSheet")
@@ -109,7 +130,7 @@ struct TextEditSheet: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Apply") {
                         onApply?()
-                        let chosen = (selectedFontName == "System") ? nil : selectedFontName
+                        let chosen = (selectedFontFamily == "System") ? nil : selectedFontFamily
                         layer.content = .text(
                             TextModel(
                                 text: text,
@@ -179,3 +200,17 @@ private struct FontStyleSegmented: View {
         .background(active ? Color(.systemGray4) : .clear)
     }
 }
+
+#if canImport(UIKit)
+private func postscriptName(forFamily family: String, bold: Bool, italic: Bool) -> String? {
+    var traits = UIFontDescriptor.SymbolicTraits()
+    if bold { traits.insert(.traitBold) }
+    if italic { traits.insert(.traitItalic) }
+    let base = UIFontDescriptor(fontAttributes: [.family: family])
+    let desc = base.withSymbolicTraits(traits) ?? base
+    let font = UIFont(descriptor: desc, size: 16)
+    return font.fontName
+}
+#else
+private func postscriptName(forFamily family: String, bold: Bool, italic: Bool) -> String? { nil }
+#endif
