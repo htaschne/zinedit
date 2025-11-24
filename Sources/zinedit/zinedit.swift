@@ -105,6 +105,7 @@ public struct EditorCanvasView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityIdentifier("canvas")
                     .contentShape(Rectangle())
                     .onTapGesture { model.selection = nil }
                     .onDrop(
@@ -127,6 +128,7 @@ public struct EditorCanvasView: View {
                         Image(systemName: "square.and.arrow.up")
                     }
                     .accessibilityLabel("Share")
+                    .accessibilityIdentifier("shareButton")
                 }
                 ToolbarItemGroup(placement: .bottomBar) {
                     Button {
@@ -140,6 +142,7 @@ public struct EditorCanvasView: View {
                     } label: {
                         Label("Text", systemImage: "textformat")
                     }
+                    .accessibilityIdentifier("textButton")
                     if config.showsPhotosPicker {
                         PhotosPicker(
                             selection: $model.photoSelection,
@@ -148,6 +151,7 @@ public struct EditorCanvasView: View {
                         ) {
                             Label("Image", systemImage: "photo")
                         }
+                        .accessibilityIdentifier("imageButton")
                     }
                     #if canImport(PencilKit)
                         if config.paint != nil {
@@ -162,6 +166,7 @@ public struct EditorCanvasView: View {
                             } label: {
                                 Label("Paint", systemImage: "pencil.tip")
                             }
+                            .accessibilityIdentifier("paintButton")
                         }
                     #endif
                     Spacer()
@@ -173,6 +178,7 @@ public struct EditorCanvasView: View {
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
+                        .accessibilityIdentifier("deleteButton")
                     }
 
                     // Collapse Undo/Redo/Layers (+ Noise when applicable) into a single menu
@@ -189,6 +195,7 @@ public struct EditorCanvasView: View {
                             } label: {
                                 Label("Noise…", systemImage: "slider.horizontal.3")
                             }
+                            .accessibilityIdentifier("noiseMenuItem")
                         }
 
                         // Undo / Redo
@@ -198,6 +205,7 @@ public struct EditorCanvasView: View {
                             Label("Undo", systemImage: "arrow.uturn.backward")
                         }
                         .disabled(!model.canUndo)
+                        .accessibilityIdentifier("undoMenuItem")
 
                         Button {
                             model.redo()
@@ -205,6 +213,7 @@ public struct EditorCanvasView: View {
                             Label("Redo", systemImage: "arrow.uturn.forward")
                         }
                         .disabled(!model.canRedo)
+                        .accessibilityIdentifier("redoMenuItem")
 
                         Divider()
 
@@ -214,9 +223,11 @@ public struct EditorCanvasView: View {
                         } label: {
                             Label("Layers", systemImage: "square.3.layers.3d.top.filled")
                         }
+                        .accessibilityIdentifier("layersMenuItem")
                     } label: {
                         Label("More", systemImage: "ellipsis.circle")
                     }
+                    .accessibilityIdentifier("moreMenuButton")
                 }
             })
             .sheet(isPresented: $showTextSheet) {
@@ -566,6 +577,7 @@ struct LayersSheet: View {
                         .accessibilityLabel(
                             layers[idx].isHidden ? "Show layer" : "Hide layer"
                         )
+                        .accessibilityIdentifier("visibilityButton-\(idx)")
                     }
                     .contentShape(Rectangle())
                     .onTapGesture { selection = layer.id }
@@ -584,14 +596,17 @@ struct LayersSheet: View {
                             }
                         }
                     }
+                    .accessibilityIdentifier("layerRow-\(idx)")
                 }
                 .onMove(perform: move)
             }
+            .accessibilityIdentifier("layersList")
             .environment(\.editMode, .constant(.active))
             .navigationTitle("Layers")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") { dismiss() }
+                        .accessibilityIdentifier("layersDoneButton")
                 }
             }
         }
@@ -720,6 +735,7 @@ struct LayerRowThumb: View {
                                     (selectedBrushIndex == idx && !erasing)
                                         ? .accentColor : .secondary
                                 )
+                                .accessibilityIdentifier("brushButton-\(idx)")
                             }
                             Button {
                                 erasing.toggle()
@@ -729,6 +745,7 @@ struct LayerRowThumb: View {
                             }
                             .buttonStyle(.bordered)
                             .tint(erasing ? .accentColor : .secondary)
+                            .accessibilityIdentifier("eraserButton")
                         }
                         .padding(.horizontal, 12)
                     }
@@ -744,7 +761,9 @@ struct LayerRowThumb: View {
                     .background(Color(.secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .padding(.horizontal, 12)
+                    .accessibilityIdentifier("drawingCanvas")
                 }
+                .accessibilityIdentifier("drawingEditSheet")
                 .navigationTitle("Edit Drawing")
                 .toolbar(content: {
                     ToolbarItem(placement: .navigationBarTrailing) {
@@ -755,9 +774,11 @@ struct LayerRowThumb: View {
                             )
                             dismiss()
                         }
+                        .accessibilityIdentifier("applyDrawingButton")
                     }
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Cancel") { dismiss() }
+                        .accessibilityIdentifier("cancelDrawingButton")
                     }
                 })
                 .onAppear {
@@ -884,15 +905,18 @@ struct LayerRowThumb: View {
                             _ in
                             updatePreview()
                         }
+                        .accessibilityIdentifier("noiseSlider")
                     }
                     .padding(.horizontal, 16)
 
                     Spacer(minLength: 0)
                 }
+                .accessibilityIdentifier("noiseEditSheet")
                 .navigationTitle("Noisy Filter")
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Cancel") { dismiss() }
+                            .accessibilityIdentifier("cancelNoiseButton")
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Apply") {
@@ -909,6 +933,7 @@ struct LayerRowThumb: View {
                             layer.content = .image(ImageModel(data: data))
                             dismiss()
                         }
+                        .accessibilityIdentifier("applyNoiseButton")
                     }
                 }
                 .onAppear {
