@@ -347,7 +347,7 @@ public struct EditorCanvasView: View {
                 }
                 pages[currentPage] = newValue
             }
-            .navigationTitle("Editor")
+//            .navigationTitle("Editor")
         }
     }
 
