@@ -151,10 +151,12 @@ public struct EditorCanvasView: View {
                         } label: {
                             Image(systemName: "arrow.left")
                                 .frame(width: 28, height: 28)
-                                .background(
-                                    Circle()
-                                )
                         }
+                        .background(
+                            Circle()
+                                .fill(.fill.tertiary)
+
+                        )
                         .disabled(currentPage == 0)
                         .accessibilityIdentifier("pagePrevButton")
 
@@ -173,10 +175,12 @@ public struct EditorCanvasView: View {
                         } label: {
                             Image(systemName: "arrow.right")
                                 .frame(width: 28, height: 28)
-                                .background(
-                                    Circle()
-                                )
+                                
                         }
+                        .background(
+                            Circle()
+                                .fill(.fill.tertiary)
+                        )
                         .disabled(currentPage == 7)
                         .accessibilityIdentifier("pageNextButton")
                     }
