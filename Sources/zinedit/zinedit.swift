@@ -70,112 +70,116 @@ public struct EditorCanvasView: View {
         NavigationStack {
             ZStack {
                 Color("InterfaceFillGraysGray6").ignoresSafeArea()
-                GeometryReader { geo in
-                    let outer = geo.size
-                    let hInset: CGFloat = 16
-                    let vInset: CGFloat = 30
-                    let inner = CGSize(
-                        width: max(0, outer.width - hInset * 2),
-                        height: max(0, outer.height - vInset * 2)
-                    )
+                VStack(spacing: 12) {
+                    GeometryReader { geo in
+                        let outer = geo.size
+                        let hInset: CGFloat = 16
+                        let vInset: CGFloat = 30
+                        let inner = CGSize(
+                            width: max(0, outer.width - hInset * 2),
+                            height: max(0, outer.height - vInset * 2)
+                        )
 
-                    ZStack {
-                        // Canvas background color (inside margins)
-                        Color("SystemLightDarkSystemBackground")
+                        ZStack {
+                            // Canvas background color (inside margins)
+                            Color("SystemLightDarkSystemBackground")
 
-                        ForEach($model.layers) { $layer in
-                            if !layer.isHidden {
-                                LayerView(layer: $layer, onBeginInteraction: { model.registerUndoPoint() })
-                                    .onTapGesture { model.select(layer.id) }
-                                    .simultaneousGesture(
-                                        TapGesture(count: 2).onEnded {
-                                            switch layer.content {
-                                            case .text:
-                                                model.select(layer.id)
-                                                selectedTextBinding = $layer
-                                                showTextSheet = true
-                                            case .drawing:
-                                                #if canImport(PencilKit)
+                            ForEach($model.layers) { $layer in
+                                if !layer.isHidden {
+                                    LayerView(layer: $layer, onBeginInteraction: { model.registerUndoPoint() })
+                                        .onTapGesture { model.select(layer.id) }
+                                        .simultaneousGesture(
+                                            TapGesture(count: 2).onEnded {
+                                                switch layer.content {
+                                                case .text:
                                                     model.select(layer.id)
-                                                    selectedDrawingBinding = $layer
-                                                    showDrawingSheet = true
-                                                #endif
-                                            default:
-                                                break
+                                                    selectedTextBinding = $layer
+                                                    showTextSheet = true
+                                                case .drawing:
+                                                    #if canImport(PencilKit)
+                                                        model.select(layer.id)
+                                                        selectedDrawingBinding = $layer
+                                                        showDrawingSheet = true
+                                                    #endif
+                                                default:
+                                                    break
+                                                }
+                                            }
+                                        )
+                                        .overlay {
+                                            if model.selection == layer.id && !layer.isHidden {
+                                                SelectionBox()
+                                                    .allowsHitTesting(false)
+                                                    .scaleEffect(layer.scale)
+                                                    .rotationEffect(layer.rotation)
+                                                    .offset(x: layer.position.x, y: layer.position.y)
                                             }
                                         }
-                                    )
-                                    .overlay {
-                                        if model.selection == layer.id && !layer.isHidden {
-                                            SelectionBox()
-                                                .allowsHitTesting(false)
-                                                .scaleEffect(layer.scale)
-                                                .rotationEffect(layer.rotation)
-                                                .offset(x: layer.position.x, y: layer.position.y)
-                                        }
-                                    }
+                                }
                             }
                         }
+                        // Exact canvas size & centered position with margins respected
+                        .frame(width: inner.width, height: inner.height)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .position(x: outer.width / 2, y: outer.height / 2)
+                        .accessibilityIdentifier("canvas")
+                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .onTapGesture { model.selection = nil }
+                        .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers in
+                            model.handleDrop(providers, in: inner)
+                            return true
+                        }
+                        .onAppear { canvasSize = inner }
+                        .onChange(of: outer) { _, newOuter in
+                            let updated = CGSize(
+                                width: max(0, newOuter.width - hInset * 2),
+                                height: max(0, newOuter.height - vInset * 2)
+                            )
+                            canvasSize = updated
+                        }
                     }
-                    // Exact canvas size & centered position with margins respected
-                    .frame(width: inner.width, height: inner.height)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .position(x: outer.width / 2, y: outer.height / 2)
-                    .accessibilityIdentifier("canvas")
-                    .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .onTapGesture { model.selection = nil }
-                    .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers in
-                        model.handleDrop(providers, in: inner)
-                        return true
-                    }
-                    .onAppear { canvasSize = inner }
-                    .onChange(of: outer) { _, newOuter in
-                        let updated = CGSize(
-                            width: max(0, newOuter.width - hInset * 2),
-                            height: max(0, newOuter.height - vInset * 2)
-                        )
-                        canvasSize = updated
-                    }
-                }
-            }
-            .toolbar(content: {
-                // Top-left Page controls
-                ToolbarItem(placement: .navigationBarLeading) {
-                    HStack(spacing: 8) {
+
+                    // Pagination controls under the canvas
+                    HStack {
                         Button {
                             if currentPage > 0 {
-                                // write back current page layers before leaving
                                 pages[currentPage] = model.layers
                                 currentPage -= 1
                                 model.selection = nil
                                 model.layers = pages[currentPage]
                             }
                         } label: {
-                            Image(systemName: "chevron.left")
+                            Image(systemName: "arrow.left")
                         }
                         .disabled(currentPage == 0)
                         .accessibilityIdentifier("pagePrevButton")
 
+                        Spacer()
+
                         Text("Page \(currentPage + 1)/8")
-                            .monospaced()
+                            .font(.body.weight(.semibold))
                             .accessibilityIdentifier("pageLabel")
+
+                        Spacer()
 
                         Button {
                             if currentPage < 7 {
-                                // write back current page layers before leaving
                                 pages[currentPage] = model.layers
                                 currentPage += 1
                                 model.selection = nil
                                 model.layers = pages[currentPage]
                             }
                         } label: {
-                            Image(systemName: "chevron.right")
+                            Image(systemName: "arrow.right")
                         }
                         .disabled(currentPage == 7)
                         .accessibilityIdentifier("pageNextButton")
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
                 }
-                // Top-right Share button
+            }
+            .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         exportAllPages()
