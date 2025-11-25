@@ -11,6 +11,11 @@ import SwiftUI
     import UIKit
 #endif
 
+@MainActor
+enum Haptics {
+    static func medium() { UIImpactFeedbackGenerator(style: .medium).impactOccurred() }
+}
+
 // MARK: - Public API
 public struct EditorCanvasView: View {
     @Binding private var layers: [EditorLayer]
@@ -165,6 +170,7 @@ public struct EditorCanvasView: View {
                     // Pagination controls under the canvas
                     HStack (spacing: 8) {
                         Button {
+                            Haptics.medium()
                             if currentPage > 0 {
                                 pages[currentPage] = model.layers
                                 currentPage -= 1
@@ -190,6 +196,7 @@ public struct EditorCanvasView: View {
                             .frame(width: 40, height: 22, alignment: .center)
 
                         Button {
+                            Haptics.medium()
                             if currentPage < 7 {
                                 pages[currentPage] = model.layers
                                 currentPage += 1
@@ -216,6 +223,7 @@ public struct EditorCanvasView: View {
             .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
+                        Haptics.medium()
                         model.undo()
                     } label: {
                         Image(systemName: "arrow.uturn.backward")
@@ -225,6 +233,7 @@ public struct EditorCanvasView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
+                        Haptics.medium()
                         model.redo()
                     } label: {
                         Image(systemName: "arrow.uturn.forward")
@@ -234,6 +243,7 @@ public struct EditorCanvasView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
+                        Haptics.medium()
                         exportAllPages()
                     } label: {
                         Image(systemName: "square.and.arrow.up")
@@ -243,6 +253,7 @@ public struct EditorCanvasView: View {
                 }
                 ToolbarItemGroup(placement: .bottomBar) {
                     Button {
+                        Haptics.medium()
                         model.addText()
                         if let id = model.selection,
                             let binding = bindingForLayer(id)
@@ -263,10 +274,14 @@ public struct EditorCanvasView: View {
                             Label("Image", systemImage: "photo.badge.plus")
                         }
                         .accessibilityIdentifier("imageButton")
+                        .simultaneousGesture(TapGesture().onEnded {
+                            Haptics.medium()
+                        })
                     }
                     #if canImport(PencilKit)
                         if config.paint != nil {
                             Button {
+                                Haptics.medium()
                                 model.addDrawing(baseSize: canvasSize)
                                 if let id = model.selection,
                                     let binding = bindingForLayer(id)
@@ -283,6 +298,7 @@ public struct EditorCanvasView: View {
                     Spacer()
 
                     Button {
+                        Haptics.medium()
                         showLayersSheet = true
                     } label: {
                         Label("Layers", systemImage: "square.3.layers.3d")
@@ -292,6 +308,7 @@ public struct EditorCanvasView: View {
                     // Keep Trash visible when there is a selection
                     if model.selection != nil {
                         Button(role: .destructive) {
+                            Haptics.medium()
                             model.deleteSelected()
                         } label: {
                             Label("Delete", systemImage: "trash")
@@ -305,6 +322,7 @@ public struct EditorCanvasView: View {
                        case .image = model.layers[index].content {
                         Menu {
                             Button {
+                                Haptics.medium()
                                 if let binding = bindingForLayer(id) {
                                     selectedImageBinding = binding
                                     showNoiseSheet = true
@@ -385,7 +403,6 @@ public struct EditorCanvasView: View {
     }
 
     private func exportAllPages() {
-        #if canImport(UIKit)
         let rect = CGRect(origin: .zero, size: config.exportSize)
         let renderer = UIGraphicsPDFRenderer(bounds: rect)
         let data = renderer.pdfData { ctx in
@@ -408,7 +425,6 @@ public struct EditorCanvasView: View {
             )
             onExport(current)
         }
-        #endif
     }
 }
 
@@ -693,6 +709,9 @@ struct LayersSheet: View {
                             )
                         Spacer()
                         Button {
+#if canImport(UIKit)
+                            Haptics.medium()
+#endif
                             onChange?()
                             layers[idx].isHidden.toggle()
                             if layers[idx].isHidden, selection == layer.id {
@@ -715,6 +734,9 @@ struct LayersSheet: View {
                     .onTapGesture { selection = layer.id }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button {
+#if canImport(UIKit)
+                            Haptics.medium()
+#endif
                             onChange?()
                             layers[idx].isHidden.toggle()
                             if layers[idx].isHidden, selection == layer.id {
@@ -737,7 +759,12 @@ struct LayersSheet: View {
             .navigationTitle("Layers")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button("Done") {
+#if canImport(UIKit)
+                        Haptics.medium();
+#endif
+                        dismiss()
+                    }
                         .accessibilityIdentifier("layersDoneButton")
                 }
             }
@@ -863,6 +890,9 @@ struct LayerRowThumb: View {
                                 id: \.offset
                             ) { idx, brush in
                                 Button {
+#if canImport(UIKit)
+                                    Haptics.medium()
+#endif
                                     selectedBrushIndex = idx
                                     erasing = false
                                 } label: {
@@ -877,6 +907,7 @@ struct LayerRowThumb: View {
                                 .accessibilityIdentifier("brushButton-\(idx)")
                             }
                             Button {
+                                Haptics.medium()
                                 erasing.toggle()
                             } label: {
                                 Image(systemName: "eraser")
@@ -907,6 +938,7 @@ struct LayerRowThumb: View {
                 .toolbar(content: {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Apply") {
+                            Haptics.medium()
                             onApply?()
                             layer.content = .drawing(
                                 DrawingModel(data: data, size: baseSize)
@@ -916,7 +948,10 @@ struct LayerRowThumb: View {
                         .accessibilityIdentifier("applyDrawingButton")
                     }
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") { dismiss() }
+                        Button("Cancel") {
+                            Haptics.medium();
+                            dismiss()
+                        }
                         .accessibilityIdentifier("cancelDrawingButton")
                     }
                 })
@@ -1054,11 +1089,14 @@ struct LayerRowThumb: View {
                 .navigationTitle("Noisy Filter")
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") { dismiss() }
+                        Button("Cancel") {
+                            Haptics.medium(); dismiss()
+                        }
                             .accessibilityIdentifier("cancelNoiseButton")
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Apply") {
+                            Haptics.medium()
                             guard
                                 let data = applyNoise(
                                     to: originalData,
