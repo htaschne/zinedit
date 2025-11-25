@@ -16,6 +16,7 @@ public struct EditorCanvasView: View {
     @Binding private var layers: [EditorLayer]
     private let config: EditorConfig
     private let onExport: ((UIImage) -> Void)?
+    private let onExportPDF: ((Data) -> Void)?
     private let onChange: (([EditorLayer]) -> Void)?
 
     @StateObject private var model = EditorModel()
@@ -33,15 +34,21 @@ public struct EditorCanvasView: View {
     @State private var showNoiseSheet = false
     @State private var selectedImageBinding: Binding<EditorLayer>?
 
+    // Pagination: always 8 pages
+    @State private var pages: [[EditorLayer]] = Array(repeating: [], count: 8)
+    @State private var currentPage: Int = 0
+
     public init(
         layers: Binding<[EditorLayer]>,
         config: EditorConfig = .init(),
         onExport: ((UIImage) -> Void)? = nil,
+        onExportPDF: ((Data) -> Void)? = nil,
         onChange: (([EditorLayer]) -> Void)? = nil
     ) {
         self._layers = layers
         self.config = config
         self.onExport = onExport
+        self.onExportPDF = onExportPDF
         self.onChange = onChange
     }
 
@@ -49,11 +56,13 @@ public struct EditorCanvasView: View {
         restoredLayers: [EditorLayer],
         config: EditorConfig = .init(),
         onExport: ((UIImage) -> Void)? = nil,
+        onExportPDF: ((Data) -> Void)? = nil,
         onChange: (([EditorLayer]) -> Void)? = nil
     ) {
         self._layers = .constant(restoredLayers)  // one-way binding; use onChange to persist changes
         self.config = config
         self.onExport = onExport
+        self.onExportPDF = onExportPDF
         self.onChange = onChange
     }
 
@@ -130,10 +139,46 @@ public struct EditorCanvasView: View {
                 }
             }
             .toolbar(content: {
+                // Top-left Page controls
+                ToolbarItem(placement: .navigationBarLeading) {
+                    HStack(spacing: 8) {
+                        Button {
+                            if currentPage > 0 {
+                                // write back current page layers before leaving
+                                pages[currentPage] = model.layers
+                                currentPage -= 1
+                                model.selection = nil
+                                model.layers = pages[currentPage]
+                            }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                        }
+                        .disabled(currentPage == 0)
+                        .accessibilityIdentifier("pagePrevButton")
+
+                        Text("Page \(currentPage + 1)/8")
+                            .monospaced()
+                            .accessibilityIdentifier("pageLabel")
+
+                        Button {
+                            if currentPage < 7 {
+                                // write back current page layers before leaving
+                                pages[currentPage] = model.layers
+                                currentPage += 1
+                                model.selection = nil
+                                model.layers = pages[currentPage]
+                            }
+                        } label: {
+                            Image(systemName: "chevron.right")
+                        }
+                        .disabled(currentPage == 7)
+                        .accessibilityIdentifier("pageNextButton")
+                    }
+                }
                 // Top-right Share button
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        export()
+                        exportAllPages()
                     } label: {
                         Image(systemName: "square.and.arrow.up")
                     }
@@ -271,16 +316,22 @@ public struct EditorCanvasView: View {
             }
             // keep EditorModel and host binding in sync
             .onAppear {
-                model.layers = layers
+                // seed page 0 from host binding on first appear
+                if pages[0].isEmpty && !layers.isEmpty {
+                    pages[0] = layers
+                }
+                model.layers = pages[currentPage]
             }
             .onChange(of: model.layers) { _, newValue in
-                self.layers = newValue
+                pages[currentPage] = newValue
+                self.layers = newValue          // keep host in sync with the current page
                 self.onChange?(newValue)
             }
             .onChange(of: layers) { oldValue, newValue in
                 if model.layers != newValue {
                     model.layers = newValue
                 }
+                pages[currentPage] = newValue
             }
             .navigationTitle("Editor")
         }
@@ -297,6 +348,33 @@ public struct EditorCanvasView: View {
             size: config.exportSize
         )
         onExport?(image)
+    }
+
+    private func exportAllPages() {
+        #if canImport(UIKit)
+        let rect = CGRect(origin: .zero, size: config.exportSize)
+        let renderer = UIGraphicsPDFRenderer(bounds: rect)
+        let data = renderer.pdfData { ctx in
+            for i in 0..<8 {
+                ctx.beginPage()
+                let img = EditorRenderer.renderImage(
+                    layers: pages[i],
+                    size: config.exportSize
+                )
+                img.draw(in: rect)
+            }
+        }
+        // Prefer PDF export for printer workflows
+        onExportPDF?(data)
+        // Also provide current page image via legacy callback if needed
+        if let onExport = onExport {
+            let current = EditorRenderer.renderImage(
+                layers: pages[currentPage],
+                size: config.exportSize
+            )
+            onExport(current)
+        }
+        #endif
     }
 }
 
