@@ -79,6 +79,18 @@ public struct EditorCanvasView: View {
                             width: max(0, outer.width - hInset * 2),
                             height: max(0, outer.height - vInset * 2)
                         )
+                        let a4Ratio: CGFloat = 297.0 / 210.0 // height / width
+                        let canvas: CGSize = {
+                            let wFit = inner.width
+                            let hFit = inner.height
+                            let hFromW = wFit * a4Ratio
+                            if hFromW <= hFit {
+                                return CGSize(width: wFit, height: hFromW)
+                            } else {
+                                let wFromH = hFit / a4Ratio
+                                return CGSize(width: wFromH, height: hFit)
+                            }
+                        }()
 
                         ZStack {
                             // Canvas background color (inside margins)
@@ -119,23 +131,34 @@ public struct EditorCanvasView: View {
                             }
                         }
                         // Exact canvas size & centered position with margins respected
-                        .frame(width: inner.width, height: inner.height)
+                        .frame(width: canvas.width, height: canvas.height)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .position(x: outer.width / 2, y: outer.height / 2)
                         .accessibilityIdentifier("canvas")
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .onTapGesture { model.selection = nil }
                         .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers in
-                            model.handleDrop(providers, in: inner)
+                            model.handleDrop(providers, in: canvas)
                             return true
                         }
-                        .onAppear { canvasSize = inner }
+                        .onAppear { canvasSize = canvas }
                         .onChange(of: outer) { _, newOuter in
-                            let updated = CGSize(
+                            let updatedInner = CGSize(
                                 width: max(0, newOuter.width - hInset * 2),
                                 height: max(0, newOuter.height - vInset * 2)
                             )
-                            canvasSize = updated
+                            let updatedCanvas: CGSize = {
+                                let wFit = updatedInner.width
+                                let hFit = updatedInner.height
+                                let hFromW = wFit * a4Ratio
+                                if hFromW <= hFit {
+                                    return CGSize(width: wFit, height: hFromW)
+                                } else {
+                                    let wFromH = hFit / a4Ratio
+                                    return CGSize(width: wFromH, height: hFit)
+                                }
+                            }()
+                            canvasSize = updatedCanvas
                         }
                     }
 
@@ -185,6 +208,7 @@ public struct EditorCanvasView: View {
                         .disabled(currentPage == 7)
                         .accessibilityIdentifier("pageNextButton")
                     }
+                    .padding(.top, 20)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
                 }
