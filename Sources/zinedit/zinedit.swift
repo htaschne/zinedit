@@ -192,6 +192,24 @@ public struct EditorCanvasView: View {
             .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
+                        model.undo()
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                    }
+                    .disabled(!model.canUndo)
+                    .accessibilityIdentifier("undoTopButton")
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        model.redo()
+                    } label: {
+                        Image(systemName: "arrow.uturn.forward")
+                    }
+                    .disabled(!model.canRedo)
+                    .accessibilityIdentifier("redoTopButton")
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
                         exportAllPages()
                     } label: {
                         Image(systemName: "square.and.arrow.up")
@@ -238,6 +256,12 @@ public struct EditorCanvasView: View {
                             .accessibilityIdentifier("paintButton")
                         }
                     #endif
+                    Button {
+                        showLayersSheet = true
+                    } label: {
+                        Label("Layers", systemImage: "square.3.layers.3d.top.filled")
+                    }
+                    .accessibilityIdentifier("layersButton")
                     Spacer()
 
                     // Keep Trash visible when there is a selection
@@ -250,12 +274,11 @@ public struct EditorCanvasView: View {
                         .accessibilityIdentifier("deleteButton")
                     }
 
-                    // Collapse Undo/Redo/Layers (+ Noise when applicable) into a single menu
-                    Menu {
-                        // Noise for selected image layer
-                        if let id = model.selection,
-                           let index = model.indexOfLayer(id),
-                           case .image = model.layers[index].content {
+                    // Only show Noise in More menu, and only for selected image layers
+                    if let id = model.selection,
+                       let index = model.indexOfLayer(id),
+                       case .image = model.layers[index].content {
+                        Menu {
                             Button {
                                 if let binding = bindingForLayer(id) {
                                     selectedImageBinding = binding
@@ -265,38 +288,11 @@ public struct EditorCanvasView: View {
                                 Label("Noise…", systemImage: "slider.horizontal.3")
                             }
                             .accessibilityIdentifier("noiseMenuItem")
-                        }
-
-                        // Undo / Redo
-                        Button {
-                            model.undo()
                         } label: {
-                            Label("Undo", systemImage: "arrow.uturn.backward")
+                            Label("More", systemImage: "ellipsis.circle")
                         }
-                        .disabled(!model.canUndo)
-                        .accessibilityIdentifier("undoMenuItem")
-
-                        Button {
-                            model.redo()
-                        } label: {
-                            Label("Redo", systemImage: "arrow.uturn.forward")
-                        }
-                        .disabled(!model.canRedo)
-                        .accessibilityIdentifier("redoMenuItem")
-
-                        Divider()
-
-                        // Layers list
-                        Button {
-                            showLayersSheet = true
-                        } label: {
-                            Label("Layers", systemImage: "square.3.layers.3d.top.filled")
-                        }
-                        .accessibilityIdentifier("layersMenuItem")
-                    } label: {
-                        Label("More", systemImage: "ellipsis.circle")
+                        .accessibilityIdentifier("moreMenuButton")
                     }
-                    .accessibilityIdentifier("moreMenuButton")
                 }
             })
             .sheet(isPresented: $showTextSheet) {
@@ -347,7 +343,6 @@ public struct EditorCanvasView: View {
                 }
                 pages[currentPage] = newValue
             }
-//            .navigationTitle("Editor")
         }
     }
 
