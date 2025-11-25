@@ -260,7 +260,7 @@ public struct EditorCanvasView: View {
                             matching: .images,
                             photoLibrary: .shared()
                         ) {
-                            Label("Image", systemImage: "photo")
+                            Label("Image", systemImage: "photo.badge.plus")
                         }
                         .accessibilityIdentifier("imageButton")
                     }
@@ -285,7 +285,7 @@ public struct EditorCanvasView: View {
                     Button {
                         showLayersSheet = true
                     } label: {
-                        Label("Layers", systemImage: "square.3.layers.3d.top.filled")
+                        Label("Layers", systemImage: "square.3.layers.3d")
                     }
                     .accessibilityIdentifier("layersButton")
 
