@@ -140,7 +140,7 @@ public struct EditorCanvasView: View {
                     }
 
                     // Pagination controls under the canvas
-                    HStack {
+                    HStack (spacing: 8) {
                         Button {
                             if currentPage > 0 {
                                 pages[currentPage] = model.layers
@@ -154,13 +154,10 @@ public struct EditorCanvasView: View {
                         .disabled(currentPage == 0)
                         .accessibilityIdentifier("pagePrevButton")
 
-                        Spacer()
-
-                        Text("Page \(currentPage + 1)/8")
+                        Text("\(currentPage + 1)")
                             .font(.body.weight(.semibold))
                             .accessibilityIdentifier("pageLabel")
-
-                        Spacer()
+                            .frame(width: 40, height: 22, alignment: .center)
 
                         Button {
                             if currentPage < 7 {
