@@ -62,7 +62,13 @@ public struct EditorCanvasView: View {
             ZStack {
                 Color(UIColor.secondarySystemBackground).ignoresSafeArea()
                 GeometryReader { geo in
-                    let size = geo.size
+                    let outer = geo.size
+                    let hInset: CGFloat = 16
+                    let vInset: CGFloat = 30
+                    let inner = CGSize(
+                        width: max(0, outer.width - hInset * 2),
+                        height: max(0, outer.height - vInset * 2)
+                    )
                     ZStack {
                         ForEach($model.layers) { $layer in
                             if !layer.isHidden {
@@ -105,6 +111,8 @@ public struct EditorCanvasView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, hInset)
+                    .padding(.vertical, vInset)
                     .accessibilityIdentifier("canvas")
                     .contentShape(Rectangle())
                     .onTapGesture { model.selection = nil }
@@ -112,11 +120,17 @@ public struct EditorCanvasView: View {
                         of: ["public.image", "public.text"],
                         isTargeted: nil
                     ) { providers in
-                        model.handleDrop(providers, in: size)
+                        model.handleDrop(providers, in: inner)
                         return true
                     }
-                    .onAppear { canvasSize = size }
-                    .onChange(of: size) { _, newSize in canvasSize = newSize }
+                    .onAppear { canvasSize = inner }
+                    .onChange(of: outer) { _, newOuter in
+                        let updated = CGSize(
+                            width: max(0, newOuter.width - hInset * 2),
+                            height: max(0, newOuter.height - vInset * 2)
+                        )
+                        canvasSize = updated
+                    }
                 }
             }
             .toolbar(content: {
