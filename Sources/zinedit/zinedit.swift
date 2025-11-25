@@ -150,6 +150,9 @@ public struct EditorCanvasView: View {
                             }
                         } label: {
                             Image(systemName: "arrow.left")
+                                .background(
+                                    Circle()
+                                )
                         }
                         .disabled(currentPage == 0)
                         .accessibilityIdentifier("pagePrevButton")
@@ -168,6 +171,9 @@ public struct EditorCanvasView: View {
                             }
                         } label: {
                             Image(systemName: "arrow.right")
+                                .background(
+                                    Circle()
+                                )
                         }
                         .disabled(currentPage == 7)
                         .accessibilityIdentifier("pageNextButton")
