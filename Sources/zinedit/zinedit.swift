@@ -110,9 +110,10 @@ public struct EditorCanvasView: View {
                     }
                     // Exact canvas size & centered position with margins respected
                     .frame(width: inner.width, height: inner.height)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     .position(x: outer.width / 2, y: outer.height / 2)
                     .accessibilityIdentifier("canvas")
-                    .contentShape(Rectangle())
+                    .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     .onTapGesture { model.selection = nil }
                     .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers in
                         model.handleDrop(providers, in: inner)
