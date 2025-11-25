@@ -256,13 +256,14 @@ public struct EditorCanvasView: View {
                             .accessibilityIdentifier("paintButton")
                         }
                     #endif
+                    Spacer()
+
                     Button {
                         showLayersSheet = true
                     } label: {
                         Label("Layers", systemImage: "square.3.layers.3d.top.filled")
                     }
                     .accessibilityIdentifier("layersButton")
-                    Spacer()
 
                     // Keep Trash visible when there is a selection
                     if model.selection != nil {
