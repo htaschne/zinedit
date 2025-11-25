@@ -13,6 +13,7 @@ import SwiftUI
 
 @MainActor
 enum Haptics {
+    @MainActor
     static func medium() { UIImpactFeedbackGenerator(style: .medium).impactOccurred() }
 }
 
