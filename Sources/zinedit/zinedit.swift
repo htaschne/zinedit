@@ -60,7 +60,7 @@ public struct EditorCanvasView: View {
     public var body: some View {
         NavigationStack {
             ZStack {
-                Color(UIColor.secondarySystemBackground).ignoresSafeArea()
+                Color("InterfaceFillGraysGray6").ignoresSafeArea()
                 GeometryReader { geo in
                     let outer = geo.size
                     let hInset: CGFloat = 16
@@ -69,7 +69,11 @@ public struct EditorCanvasView: View {
                         width: max(0, outer.width - hInset * 2),
                         height: max(0, outer.height - vInset * 2)
                     )
+
                     ZStack {
+                        // Canvas background color (inside margins)
+                        Color("SystemLightDarkSystemBackground")
+
                         ForEach($model.layers) { $layer in
                             if !layer.isHidden {
                                 LayerView(layer: $layer, onBeginInteraction: { model.registerUndoPoint() })
@@ -84,8 +88,7 @@ public struct EditorCanvasView: View {
                                             case .drawing:
                                                 #if canImport(PencilKit)
                                                     model.select(layer.id)
-                                                    selectedDrawingBinding =
-                                                        $layer
+                                                    selectedDrawingBinding = $layer
                                                     showDrawingSheet = true
                                                 #endif
                                             default:
@@ -94,32 +97,24 @@ public struct EditorCanvasView: View {
                                         }
                                     )
                                     .overlay {
-                                        if model.selection == layer.id
-                                            && !layer.isHidden
-                                        {
+                                        if model.selection == layer.id && !layer.isHidden {
                                             SelectionBox()
                                                 .allowsHitTesting(false)
                                                 .scaleEffect(layer.scale)
                                                 .rotationEffect(layer.rotation)
-                                                .offset(
-                                                    x: layer.position.x,
-                                                    y: layer.position.y
-                                                )
+                                                .offset(x: layer.position.x, y: layer.position.y)
                                         }
                                     }
                             }
                         }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(.horizontal, hInset)
-                    .padding(.vertical, vInset)
+                    // Exact canvas size & centered position with margins respected
+                    .frame(width: inner.width, height: inner.height)
+                    .position(x: outer.width / 2, y: outer.height / 2)
                     .accessibilityIdentifier("canvas")
                     .contentShape(Rectangle())
                     .onTapGesture { model.selection = nil }
-                    .onDrop(
-                        of: ["public.image", "public.text"],
-                        isTargeted: nil
-                    ) { providers in
+                    .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers in
                         model.handleDrop(providers, in: inner)
                         return true
                     }
