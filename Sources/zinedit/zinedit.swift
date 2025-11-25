@@ -151,6 +151,7 @@ public struct EditorCanvasView: View {
                         } label: {
                             Image(systemName: "arrow.left")
                                 .frame(width: 28, height: 28)
+                                .foregroundStyle(Color("BrandZinerPrimary100"))
                         }
                         .background(
                             Circle()
@@ -175,7 +176,7 @@ public struct EditorCanvasView: View {
                         } label: {
                             Image(systemName: "arrow.right")
                                 .frame(width: 28, height: 28)
-                                
+                                .foregroundStyle(Color("BrandZinerPrimary100"))
                         }
                         .background(
                             Circle()
