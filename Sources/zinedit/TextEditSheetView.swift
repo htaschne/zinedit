@@ -100,7 +100,9 @@ struct TextEditSheet: View {
                                 .font(.headline)
                                 .foregroundStyle(.primary)
                         }
-                        .background(Color("BrandZinerPrimary15"))
+                        
+                        
+                        CustomStepper(value: $fontSize, range: 2...128, step: 1, buttonBackgroundColor: Color("BrandZinerPrimary15"), buttonForegroundColor: .primary)
 
                         LabeledContent("Font style") {
                             FontStyleSegmented(
@@ -278,3 +280,45 @@ private struct FontStyleSegmented: View {
         italic: Bool
     ) -> String? { nil }
 #endif
+
+
+struct CustomStepper: View {
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    let step: Double
+    let buttonBackgroundColor: Color
+    let buttonForegroundColor: Color
+
+    var body: some View {
+        HStack {
+            Button {
+                if value > range.lowerBound {
+                    value -= step
+                }
+            } label: {
+                Image(systemName: "minus")
+                    .frame(width: 44, height: 44)
+                    .background(buttonBackgroundColor)
+                    .foregroundColor(buttonForegroundColor)
+                    .cornerRadius(8)
+            }
+
+            Text("\(value)")
+                .font(.title2)
+                .padding(.horizontal)
+
+            Button {
+                if value < range.upperBound {
+                    value += step
+                }
+            } label: {
+                Image(systemName: "plus")
+                    .frame(width: 44, height: 44)
+                    .background(buttonBackgroundColor)
+                    .foregroundColor(buttonForegroundColor)
+                    .cornerRadius(8)
+            }
+        }
+    }
+}
+
