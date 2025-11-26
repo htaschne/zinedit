@@ -109,17 +109,13 @@ struct TextEditSheet: View {
                         .tint(.primary)
 
                         HStack(spacing: 12) {
-                            // Stepper on the left
-                            StepperPill(left: "-", right: "+", fontSize: $fontSize)
-                                .frame(minWidth: 92, minHeight: 32)
-
-                            // Label immediately to its right
                             Text("Size \(Int(fontSize))")
                                 .font(.body)
-                                .foregroundStyle(Color("labels/primary"))
-
-                            // Keep both controls pinned to the leading edge
+                                .foregroundStyle(.primary)
                             Spacer()
+                            
+                            StepperPill(left: "-", right: "+", fontSize: $fontSize)
+                                .frame(minHeight: 32)
                         }
 
                         LabeledContent("Font style") {
