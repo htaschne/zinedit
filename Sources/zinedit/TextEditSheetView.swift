@@ -58,7 +58,7 @@ struct TextEditSheet: View {
                             .accessibilityIdentifier("fontPicker")
                         } label: {
                             HStack {
-                                Text("Font").font(.body).foregroundStyle(Color("labels/primary"))
+                                Text("Font").font(.body).foregroundStyle(.primary)
                                 Spacer()
 
                                 ZStack {
@@ -73,11 +73,11 @@ struct TextEditSheet: View {
                                         if selectedFontFamily == "System" {
                                             Text("Default")
                                                 .font(.body)
-                                                .foregroundStyle(.foreground)
+                                                .foregroundStyle(.primary)
                                         } else {
                                             Text(selectedFontFamily)
                                                 .font(.body)
-                                                .foregroundStyle(.foreground)
+                                                .foregroundStyle(.primary)
                                         }
                                     }
                                     .lineLimit(1)
