@@ -95,12 +95,18 @@ struct TextEditSheet: View {
                         }
                         .tint(.primary)
 
-                        Stepper(value: $fontSize, in: 2...128) {
+                        HStack {
                             Text("Size \(Int(fontSize))")
-                                .font(.headline)
-                                .foregroundStyle(.primary)
+                                .frame(maxWidth: .infinity)
+                            
+                            Spacer()
+                            
+                            Stepper(value: $fontSize, in: 2...128) {
+                                Text("")
+                                    .font(.headline)
+                                    .foregroundStyle(Color("BrandZinerPrimary15"))
+                            }
                         }
-                        .background(Color("BrandZinerPrimary15"))
 
                         LabeledContent("Font style") {
                             FontStyleSegmented(
