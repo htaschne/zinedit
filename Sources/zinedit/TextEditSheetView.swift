@@ -131,11 +131,12 @@ struct TextEditSheet: View {
                             HStack {
                                 Text("Size")
                                     .font(.body)
-                                    .foregroundStyle(.primary)
                                 Spacer()
                                 FontStylePill(isBold: $isBold, isItalic: $isItalic)
                             }
+                            .frame(maxWidth: 92)
                         }
+                        .foregroundStyle(.primary)
                         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                         
                         ColorPicker("Color", selection: $color)
@@ -358,7 +359,7 @@ struct FontStylePill: View {
                 .foregroundStyle(.gray.opacity(0.5))
             
             Button(action: { isItalic.toggle() }) {
-                Image(systemName: "Italic")
+                Image(systemName: "italic")
                     .font(.body)
             }
             .frame(width: 46)
