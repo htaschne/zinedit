@@ -25,7 +25,7 @@ struct TextEditSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            List {
                 if case .text(let model) = layer.content {
                     Section("Text") {
                         TextField("Text", text: $text, axis: .vertical)
@@ -35,6 +35,7 @@ struct TextEditSheet: View {
                                 isBold = model.weight == .bold
                                 color = model.color
                             }
+                            .listRowInsets(EdgeInsets())
                     }
                     Section("Style") {
                         Menu {
@@ -106,6 +107,8 @@ struct TextEditSheet: View {
                             .padding(.vertical, 6)
                             .accessibilityIdentifier("fontMenu")
                         }
+                        
+                        .listRowInsets(EdgeInsets())
                         .tint(.primary)
 
                         Button {} label: {
@@ -120,6 +123,7 @@ struct TextEditSheet: View {
                                 StepperPill(fontSize: $fontSize)
                             }
                         }
+                        .listRowInsets(EdgeInsets())
                         .foregroundStyle(.primary)
 
 
@@ -130,7 +134,10 @@ struct TextEditSheet: View {
                             )
                             .accessibilityIdentifier("fontStyleSegmented")
                         }
+                        .listRowInsets(EdgeInsets())
+                        
                         ColorPicker("Color", selection: $color)
+                            .listRowInsets(EdgeInsets())
                     }
                     Section("Preview") {
                         let font: Font = {
@@ -151,6 +158,7 @@ struct TextEditSheet: View {
                                 )
                             }
                         }()
+                        
 
                         Group {
                             if selectedFontFamily == "System" && isItalic {
@@ -159,6 +167,7 @@ struct TextEditSheet: View {
                                 Text(text).font(font)
                             }
                         }
+                        .listRowInsets(EdgeInsets())
                         .foregroundStyle(color)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding()
