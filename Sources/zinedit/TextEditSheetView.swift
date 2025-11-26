@@ -73,11 +73,11 @@ struct TextEditSheet: View {
                                         if selectedFontFamily == "System" {
                                             Text("Default")
                                                 .font(.body)
-                                                .foregroundStyle(Color("labels/primary"))
+                                                .foregroundStyle(.foreground)
                                         } else {
                                             Text(selectedFontFamily)
                                                 .font(.body)
-                                                .foregroundStyle(Color("labels/primary"))
+                                                .foregroundStyle(.foreground)
                                         }
                                     }
                                     .lineLimit(1)
