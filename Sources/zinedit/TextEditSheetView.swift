@@ -35,7 +35,7 @@ struct TextEditSheet: View {
                                 isBold = model.weight == .bold
                                 color = model.color
                             }
-                            .listRowInsets(EdgeInsets())
+                            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                     }
                     Section("Style") {
                         Menu {
@@ -108,7 +108,7 @@ struct TextEditSheet: View {
                             .accessibilityIdentifier("fontMenu")
                         }
                         
-                        .listRowInsets(EdgeInsets())
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                         .tint(.primary)
 
                         Button {} label: {
@@ -123,7 +123,7 @@ struct TextEditSheet: View {
                                 StepperPill(fontSize: $fontSize)
                             }
                         }
-                        .listRowInsets(EdgeInsets())
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                         .foregroundStyle(.primary)
 
 
@@ -134,10 +134,10 @@ struct TextEditSheet: View {
                             )
                             .accessibilityIdentifier("fontStyleSegmented")
                         }
-                        .listRowInsets(EdgeInsets())
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                         
                         ColorPicker("Color", selection: $color)
-                            .listRowInsets(EdgeInsets())
+                            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                     }
                     Section("Preview") {
                         let font: Font = {
@@ -167,7 +167,7 @@ struct TextEditSheet: View {
                                 Text(text).font(font)
                             }
                         }
-                        .listRowInsets(EdgeInsets())
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                         .foregroundStyle(color)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding()
