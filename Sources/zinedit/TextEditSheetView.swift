@@ -108,11 +108,18 @@ struct TextEditSheet: View {
                         }
                         .tint(.primary)
 
-                        HStack {
-                            Text("Size \(Int(fontSize))")
-                                .frame(maxWidth: .infinity)
+                        HStack(spacing: 12) {
+                            // Stepper on the left
                             StepperPill(left: "-", right: "+", fontSize: $fontSize)
                                 .frame(minWidth: 92, minHeight: 32)
+
+                            // Label immediately to its right
+                            Text("Size \(Int(fontSize))")
+                                .font(.body)
+                                .foregroundStyle(Color("labels/primary"))
+
+                            // Keep both controls pinned to the leading edge
+                            Spacer()
                         }
 
                         LabeledContent("Font style") {
@@ -314,18 +321,38 @@ struct StepperPill: View {
                 .stroke(Color(.separator), lineWidth: 1)
             )
             
-            HStack {
-                Button(action: { fontSize -= 1 }) {
-                    Text("\(left)")
-                        .font(.headline)
+            HStack(spacing: 12) {
+                Button {
+                    #if canImport(UIKit)
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    #endif
+                    fontSize = max(2, fontSize - 1)
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title3)
+                        .frame(width: 40, height: 34)
+                        .contentShape(Rectangle())
                 }
-                .foregroundStyle(.primary)
+                .buttonStyle(.plain)
+                .foregroundStyle(Color("BrandZinerPrimary15"))
+                .accessibilityIdentifier("fontSizeMinus")
+                .accessibilityLabel("Decrease font size")
 
-                Button(action: { fontSize += 1 }){
-                    Text("\(right)")
-                        .font(.headline)
+                Button {
+                    #if canImport(UIKit)
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    #endif
+                    fontSize = min(128, fontSize + 1)
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title3)
+                        .frame(width: 40, height: 34)
+                        .contentShape(Rectangle())
                 }
-                .foregroundStyle(.primary)
+                .buttonStyle(.plain)
+                .foregroundStyle(Color("BrandZinerPrimary15"))
+                .accessibilityIdentifier("fontSizePlus")
+                .accessibilityLabel("Increase font size")
             }
         }
         .lineLimit(1)
