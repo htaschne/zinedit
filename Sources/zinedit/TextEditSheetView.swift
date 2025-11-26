@@ -278,3 +278,28 @@ private struct FontStyleSegmented: View {
         italic: Bool
     ) -> String? { nil }
 #endif
+
+struct ContentView: View {
+    @State private var age = 18
+
+    var body: some View {
+        VStack {
+            HStack{
+                Text("Age:")
+                    .frame(maxWidth: .infinity)
+
+                Spacer()
+                    
+                Stepper("", value: $age, in: 2...128)
+                    .foregroundStyle(.pink)
+                    
+
+            }
+            Text("Your age is \(age)")
+        }
+    }
+}
+
+#Preview {
+    ContentView()
+}
