@@ -110,8 +110,9 @@ struct TextEditSheet: View {
 
                         HStack {
                             Text("Size \(Int(fontSize))")
-                            Spacer()
+                                .frame(maxWidth: .infinity)
                             StepperPill(left: "-", right: "+", fontSize: $fontSize)
+                                .frame(minWidth: 92, minHeight: 32)
                         }
 
                         LabeledContent("Font style") {
