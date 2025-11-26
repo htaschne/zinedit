@@ -110,7 +110,7 @@ struct TextEditSheet: View {
 
                         Button {} label: {
                             HStack {
-                                Text("Size ")
+                                Text("Size")
                                     .font(.body)
                                     .foregroundStyle(.primary)
                                 Text("\(Int(fontSize))")
