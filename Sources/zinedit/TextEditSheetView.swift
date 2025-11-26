@@ -97,13 +97,10 @@ struct TextEditSheet: View {
 
                         HStack {
                             Text("Size \(Int(fontSize))")
-                                .frame(maxWidth: .infinity)
-                            
-                            Spacer()
-                            
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                
                             Stepper(value: $fontSize, in: 2...128) {
                                 Text("")
-                                    .font(.headline)
                                     .foregroundStyle(Color("BrandZinerPrimary15"))
                             }
                         }
