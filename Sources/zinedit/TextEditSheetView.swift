@@ -58,16 +58,24 @@ struct TextEditSheet: View {
                             .accessibilityIdentifier("fontPicker")
                         } label: {
                             HStack {
-                                Text("Font").font(.body).foregroundStyle(.primary)
+                                Text("Font").font(.body).foregroundStyle(
+                                    .primary
+                                )
                                 Spacer()
 
                                 ZStack {
-                                    RoundedRectangle(cornerRadius: 100, style: .continuous)
-                                        .fill(Color("BrandZinerPrimary15"))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 100, style: .continuous)
-                                                .stroke(Color(.separator), lineWidth: 1)
+                                    RoundedRectangle(
+                                        cornerRadius: 100,
+                                        style: .continuous
+                                    )
+                                    .fill(Color("BrandZinerPrimary15"))
+                                    .overlay(
+                                        RoundedRectangle(
+                                            cornerRadius: 100,
+                                            style: .continuous
                                         )
+                                        .stroke(Color(.separator), lineWidth: 1)
+                                    )
 
                                     Group {
                                         if selectedFontFamily == "System" {
@@ -87,7 +95,12 @@ struct TextEditSheet: View {
                                 }
                                 .frame(minWidth: 78, minHeight: 34)
                                 .fixedSize(horizontal: true, vertical: false)
-                                .contentShape(RoundedRectangle(cornerRadius: 100, style: .continuous))
+                                .contentShape(
+                                    RoundedRectangle(
+                                        cornerRadius: 100,
+                                        style: .continuous
+                                    )
+                                )
                                 .accessibilityIdentifier("fontSelectedBadge")
                             }
                             .padding(.vertical, 6)
@@ -97,12 +110,8 @@ struct TextEditSheet: View {
 
                         HStack {
                             Text("Size \(Int(fontSize))")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                            Stepper(value: $fontSize, in: 2...128) {
-                                Text("")
-                                    .foregroundStyle(Color("BrandZinerPrimary15"))
-                            }
+                            Spacer()
+                            StepperPill(left: "-", right: "+", fontSize: $fontSize)
                         }
 
                         LabeledContent("Font style") {
@@ -282,27 +291,49 @@ private struct FontStyleSegmented: View {
     ) -> String? { nil }
 #endif
 
-struct ContentView: View {
-    @State private var age = 18
+struct StepperPill: View {
+    let left: String
+    let right: String
+
+    @Binding var fontSize: Double
 
     var body: some View {
-        VStack {
-            HStack{
-                Text("Age:")
-                    .frame(maxWidth: .infinity)
+        ZStack {
+            
+            RoundedRectangle(
+                cornerRadius: 100,
+                style: .continuous
+            )
+            .fill(Color("BrandZinerPrimary15"))
+            .overlay(
+                RoundedRectangle(
+                    cornerRadius: 100,
+                    style: .continuous
+                )
+                .stroke(Color(.separator), lineWidth: 1)
+            )
+            
+            HStack {
+                Button(action: { fontSize -= 1 }) {
+                    Text("\(left)")
+                        .font(.headline)
+                }
+                .foregroundStyle(.primary)
 
-                Spacer()
-                    
-                Stepper("", value: $age, in: 2...128)
-                    .foregroundStyle(.pink)
-                    
-
+                Button(action: { fontSize += 1 }){
+                    Text("\(right)")
+                        .font(.headline)
+                }
+                .foregroundStyle(.primary)
             }
-            Text("Your age is \(age)")
         }
+        .lineLimit(1)
+        .truncationMode(.middle)
+        .minimumScaleFactor(0.8)
+        .padding(.horizontal, 12)
     }
 }
 
-#Preview {
-    ContentView()
+#Preview("StepperPill") {
+    return StepperPill(left: "-", right: "+", fontSize: .constant(0))
 }
