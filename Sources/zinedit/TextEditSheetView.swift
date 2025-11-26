@@ -115,9 +115,10 @@ struct TextEditSheet: View {
                                     .foregroundStyle(.primary)
                                 Spacer()
                                 StepperPill(fontSize: $fontSize)
-                                    .foregroundStyle(.primary)
                             }
                         }
+                        .foregroundStyle(.primary)
+
 
                         LabeledContent("Font style") {
                             FontStyleSegmented(
