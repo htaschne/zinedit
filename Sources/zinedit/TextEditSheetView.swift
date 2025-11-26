@@ -114,12 +114,8 @@ struct TextEditSheet: View {
                                 .foregroundStyle(.primary)
                             Spacer()
 
-                            StepperPill(
-                                left: "-",
-                                right: "+",
-                                fontSize: $fontSize
-                            )
-                            .frame(minHeight: 32)
+                            StepperPill(fontSize: $fontSize)
+                                .frame(minHeight: 32)
                         }
 
                         LabeledContent("Font style") {
