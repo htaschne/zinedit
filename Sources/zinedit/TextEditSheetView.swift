@@ -305,14 +305,14 @@ struct StepperPill: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 0) {
-            Button("-") {
-                fontSize -= 1
+            Button(action: { fontSize -= 1 }) {
+                Image(systemName: "minus")
             }
             .frame(width: 46)
             .frame(height: 32)
             
-            Button("+") {
-                fontSize += 1
+            Button(action: { fontSize += 1 }) {
+                Image(systemName: "plus")
             }
             .frame(width: 46)
             .frame(height: 32)
