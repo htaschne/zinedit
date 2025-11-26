@@ -128,10 +128,13 @@ struct TextEditSheet: View {
 
 
                         LabeledContent("Font style") {
-                            FontStylePill(
-                                isBold: $isBold,
-                                isItalic: $isItalic
-                            )
+                            Button {} label: {
+                                FontStylePill(
+                                    isBold: $isBold,
+                                    isItalic: $isItalic
+                                )
+                                .foregroundStyle(.primary)
+                            }
                             .accessibilityIdentifier("fontStyleSegmented")
                         }
                         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
@@ -342,7 +345,7 @@ struct FontStylePill: View {
     @Binding var isItalic: Bool
 
     var body: some View {
-        HStack(alignment: .center, spacing: 0) {
+        HStack(alignment: .center, spacing: 16) {
             Button(action: { isBold.toggle() }) {
                 Image(systemName: "bold")
                     .font(.headline)
@@ -351,9 +354,7 @@ struct FontStylePill: View {
             .frame(width: 46)
             .frame(height: 32)
             
-            Spacer()
             Text("|")
-            Spacer()
             
             Button(action: { isItalic.toggle() }) {
                 Image(systemName: "Italic")
