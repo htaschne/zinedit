@@ -133,8 +133,8 @@ struct TextEditSheet: View {
                                     .font(.body)
                                 Spacer()
                                 FontStylePill(isBold: $isBold, isItalic: $isItalic)
+                                    .frame(maxWidth: 92)
                             }
-                            .frame(maxWidth: 92)
                         }
                         .foregroundStyle(.primary)
                         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
