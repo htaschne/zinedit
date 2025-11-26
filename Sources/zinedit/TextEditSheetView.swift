@@ -110,9 +110,12 @@ struct TextEditSheet: View {
 
                         Button {} label: {
                             HStack {
-                                Text("Size \(Int(fontSize))")
+                                Text("Size ")
                                     .font(.body)
                                     .foregroundStyle(.primary)
+                                Text("\(Int(fontSize))")
+                                    .font(.body)
+                                    .foregroundStyle(Color("ConesIconOnBrand"))
                                 Spacer()
                                 StepperPill(fontSize: $fontSize)
                             }
