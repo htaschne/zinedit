@@ -128,7 +128,7 @@ struct TextEditSheet: View {
 
 
                         LabeledContent("Font style") {
-                            FontStyleSegmented(
+                            FontStylePill(
                                 isBold: $isBold,
                                 isItalic: $isItalic
                             )
@@ -324,6 +324,39 @@ struct StepperPill: View {
             
             Button(action: { fontSize += 1 }) {
                 Image(systemName: "plus")
+                    .font(.headline)
+            }
+            .frame(width: 46)
+            .frame(height: 32)
+        }
+        .font(.title)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color("BrandZinerPrimary15"))
+        )
+    }
+}
+
+struct FontStylePill: View {
+    @Binding var isBold: Bool
+    @Binding var isItalic: Bool
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 0) {
+            Button(action: { isBold.toggle() }) {
+                Image(systemName: "bold")
+                    .font(.headline)
+
+            }
+            .frame(width: 46)
+            .frame(height: 32)
+            
+            Spacer()
+            Text("|")
+            Spacer()
+            
+            Button(action: { isItalic.toggle() }) {
+                Image(systemName: "Italic")
                     .font(.headline)
             }
             .frame(width: 46)
