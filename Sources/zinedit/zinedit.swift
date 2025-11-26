@@ -19,7 +19,7 @@ enum Haptics {
 
 // MARK: - Public API
 public struct EditorCanvasView: View {
-    @Binding private var layers: [EditorLayer]
+    @Binding public var layers: [EditorLayer]
     private let config: EditorConfig
     private let onExport: ((UIImage) -> Void)?
     private let onExportPDF: ((Data) -> Void)?

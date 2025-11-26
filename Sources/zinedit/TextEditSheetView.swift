@@ -5,10 +5,10 @@
 //  Created by Agatha Schneider on 07/11/25.
 //
 
-
 import SwiftUI
+
 #if canImport(UIKit)
-import UIKit
+    import UIKit
 #endif
 
 struct TextEditSheet: View {
@@ -42,23 +42,60 @@ struct TextEditSheet: View {
                                 Text("System").tag("System")
                                 ForEach(allFontFamilies, id: \.self) { family in
                                     Text(family)
-                                        .font(.custom(postscriptName(forFamily: family, bold: false, italic: false) ?? family, size: 16))
+                                        .font(
+                                            .custom(
+                                                postscriptName(
+                                                    forFamily: family,
+                                                    bold: false,
+                                                    italic: false
+                                                ) ?? family,
+                                                size: 16
+                                            )
+                                        )
                                         .tag(family)
                                 }
                             }
                             .accessibilityIdentifier("fontPicker")
                         } label: {
                             HStack {
-                                if selectedFontFamily == "System" {
-                                    Text("System")
-                                } else {
-                                    Text(selectedFontFamily)
-                                        .font(.custom(postscriptName(forFamily: selectedFontFamily, bold: false, italic: false) ?? selectedFontFamily, size: 16))
-                                }
+                                Text("Font")
                                 Spacer()
-                                Image(systemName: "chevron.up.chevron.down")
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
+
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 100, style: .continuous)
+                                        .fill(Color("BrandZinerPrimary15"))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 100, style: .continuous)
+                                                .stroke(Color(.separator), lineWidth: 1)
+                                        )
+
+                                    Group {
+                                        if selectedFontFamily == "System" {
+                                            Text("Default")
+                                                .font(.system(size: 14))
+                                        } else {
+                                            Text(selectedFontFamily)
+                                                .font(
+                                                    .custom(
+                                                        postscriptName(
+                                                            forFamily: selectedFontFamily,
+                                                            bold: false,
+                                                            italic: false
+                                                        ) ?? selectedFontFamily,
+                                                        size: 14
+                                                    )
+                                                )
+                                        }
+                                    }
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                    .minimumScaleFactor(0.8)
+                                    .padding(.horizontal, 12)
+                                }
+                                .frame(minWidth: 78, minHeight: 34)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .contentShape(RoundedRectangle(cornerRadius: 100, style: .continuous))
+                                .accessibilityIdentifier("fontSelectedBadge")
                             }
                             .padding(.vertical, 6)
                             .accessibilityIdentifier("fontMenu")
@@ -70,18 +107,31 @@ struct TextEditSheet: View {
                             in: 2...128
                         )
                         LabeledContent("Font style") {
-                            FontStyleSegmented(isBold: $isBold, isItalic: $isItalic)
-                                .accessibilityIdentifier("fontStyleSegmented")
+                            FontStyleSegmented(
+                                isBold: $isBold,
+                                isItalic: $isItalic
+                            )
+                            .accessibilityIdentifier("fontStyleSegmented")
                         }
                         ColorPicker("Color", selection: $color)
                     }
                     Section("Preview") {
                         let font: Font = {
                             if selectedFontFamily == "System" {
-                                return .system(size: fontSize, weight: isBold ? .bold : .regular)
+                                return .system(
+                                    size: fontSize,
+                                    weight: isBold ? .bold : .regular
+                                )
                             } else {
-                                let ps = postscriptName(forFamily: selectedFontFamily, bold: isBold, italic: isItalic)
-                                return .custom(ps ?? selectedFontFamily, size: fontSize)
+                                let ps = postscriptName(
+                                    forFamily: selectedFontFamily,
+                                    bold: isBold,
+                                    italic: isItalic
+                                )
+                                return .custom(
+                                    ps ?? selectedFontFamily,
+                                    size: fontSize
+                                )
                             }
                         }()
 
@@ -100,19 +150,19 @@ struct TextEditSheet: View {
             }
             .onAppear {
                 #if canImport(UIKit)
-                let families = UIFont.familyNames.sorted()
-                allFontFamilies = families
+                    let families = UIFont.familyNames.sorted()
+                    allFontFamilies = families
                 #endif
                 if case .text(let t) = layer.content {
                     if let name = t.fontName, !name.isEmpty {
                         #if canImport(UIKit)
-                        if let ui = UIFont(name: name, size: 16) {
-                            selectedFontFamily = ui.familyName
-                        } else {
-                            selectedFontFamily = name // assume it was already a family
-                        }
+                            if let ui = UIFont(name: name, size: 16) {
+                                selectedFontFamily = ui.familyName
+                            } else {
+                                selectedFontFamily = name  // assume it was already a family
+                            }
                         #else
-                        selectedFontFamily = name
+                            selectedFontFamily = name
                         #endif
                     } else {
                         selectedFontFamily = "System"
@@ -125,12 +175,13 @@ struct TextEditSheet: View {
                 }
             }
             .accessibilityIdentifier("textEditSheet")
-            .navigationTitle("Edit Text")
             .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Apply") {
                         onApply?()
-                        let chosen = (selectedFontFamily == "System") ? nil : selectedFontFamily
+                        let chosen =
+                            (selectedFontFamily == "System")
+                            ? nil : selectedFontFamily
                         layer.content = .text(
                             TextModel(
                                 text: text,
@@ -163,9 +214,13 @@ private struct FontStyleSegmented: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            segment(title: "B", active: isBold, italic: false) { isBold.toggle() }
+            segment(title: "B", active: isBold, italic: false) {
+                isBold.toggle()
+            }
             separator
-            segment(title: "I", active: isItalic, italic: true) { isItalic.toggle() }
+            segment(title: "I", active: isItalic, italic: true) {
+                isItalic.toggle()
+            }
         }
         .padding(2)
         .background(Color(.systemGray6))
@@ -180,7 +235,12 @@ private struct FontStyleSegmented: View {
     }
 
     @ViewBuilder
-    private func segment(title: String, active: Bool, italic: Bool, action: @escaping () -> Void) -> some View {
+    private func segment(
+        title: String,
+        active: Bool,
+        italic: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             let label = Text(title)
                 .font(.headline)
@@ -202,15 +262,23 @@ private struct FontStyleSegmented: View {
 }
 
 #if canImport(UIKit)
-private func postscriptName(forFamily family: String, bold: Bool, italic: Bool) -> String? {
-    var traits = UIFontDescriptor.SymbolicTraits()
-    if bold { traits.insert(.traitBold) }
-    if italic { traits.insert(.traitItalic) }
-    let base = UIFontDescriptor(fontAttributes: [.family: family])
-    let desc = base.withSymbolicTraits(traits) ?? base
-    let font = UIFont(descriptor: desc, size: 16)
-    return font.fontName
-}
+    private func postscriptName(
+        forFamily family: String,
+        bold: Bool,
+        italic: Bool
+    ) -> String? {
+        var traits = UIFontDescriptor.SymbolicTraits()
+        if bold { traits.insert(.traitBold) }
+        if italic { traits.insert(.traitItalic) }
+        let base = UIFontDescriptor(fontAttributes: [.family: family])
+        let desc = base.withSymbolicTraits(traits) ?? base
+        let font = UIFont(descriptor: desc, size: 16)
+        return font.fontName
+    }
 #else
-private func postscriptName(forFamily family: String, bold: Bool, italic: Bool) -> String? { nil }
+    private func postscriptName(
+        forFamily family: String,
+        bold: Bool,
+        italic: Bool
+    ) -> String? { nil }
 #endif
