@@ -95,12 +95,38 @@ struct TextEditSheet: View {
                         }
                         .tint(.primary)
 
-                        Stepper(value: $fontSize, in: 2...128) {
+                        HStack(spacing: 12) {
                             Text("Size \(Int(fontSize))")
-                                .font(.headline)
+                                .font(.body)
                                 .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Button {
+                                #if canImport(UIKit)
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                #endif
+                                if fontSize > 2 { fontSize -= 1 }
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(Color("BrandZinerPrimary15"))
+                            }
+                            .accessibilityIdentifier("fontSizeMinus")
+
+                            Button {
+                                #if canImport(UIKit)
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                #endif
+                                if fontSize < 128 { fontSize += 1 }
+                            } label: {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(Color("BrandZinerPrimary15"))
+                            }
+                            .accessibilityIdentifier("fontSizePlus")
                         }
-                        .tint(Color("BrandZinerPrimary15"))
+
                         LabeledContent("Font style") {
                             FontStyleSegmented(
                                 isBold: $isBold,
