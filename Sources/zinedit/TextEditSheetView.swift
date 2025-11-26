@@ -108,14 +108,12 @@ struct TextEditSheet: View {
                         }
                         .tint(.primary)
 
-                        HStack(spacing: 12) {
+                        HStack {
                             Text("Size \(Int(fontSize))")
                                 .font(.body)
                                 .foregroundStyle(.primary)
                             Spacer()
-
                             StepperPill(fontSize: $fontSize)
-                                .frame(minHeight: 32)
                         }
 
                         LabeledContent("Font style") {
@@ -299,53 +297,73 @@ struct StepperPill: View {
     @Binding var fontSize: Double
 
     var body: some View {
-        ZStack {
-
-            RoundedRectangle(
-                cornerRadius: 100,
-                style: .continuous
-            )
-            .fill(Color("BrandZinerPrimary15"))
-            .overlay(
-                RoundedRectangle(
-                    cornerRadius: 100,
-                    style: .continuous
-                )
-                .stroke(Color(.separator), lineWidth: 1)
-            )
-
-            HStack(spacing: 12) {
-                Button {
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    fontSize = max(2, fontSize - 1)
-                } label: {
-                    Text("-")
-                        .font(.headline)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(Color("BrandZinerPrimary15"))
-                .accessibilityIdentifier("fontSizeMinus")
-                .accessibilityLabel("Decrease font size")
-
-                Button {
-                    UIImpactFeedbackGenerator(style: .medium)
-                        .impactOccurred()
-                    fontSize = min(128, fontSize + 1)
-                } label: {
-                    Text("+")
-                        .font(.headline)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(Color("BrandZinerPrimary15"))
-                .accessibilityIdentifier("fontSizePlus")
-                .accessibilityLabel("Increase font size")
+//        ZStack {
+            
+        HStack(alignment: .center, spacing: 0) {
+            Button("-") {
+                fontSize -= 1
             }
-            .foregroundStyle(.primary)
+            .frame(width: 46)
+            .frame(height: 32)
+            
+            Button("+") {
+                fontSize += 1
+            }
+            .frame(width: 46)
+            .frame(height: 32)
         }
-        .lineLimit(1)
-        .truncationMode(.middle)
-        .minimumScaleFactor(0.8)
-        .padding(.horizontal, 12)
+        .font(.title)
+        .foregroundStyle(.primary)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.pink.opacity(0.5))
+        )
+
+//            RoundedRectangle(
+//                cornerRadius: 100,
+//                style: .continuous
+//            )
+//            .fill(Color("BrandZinerPrimary15"))
+//            .overlay(
+//                RoundedRectangle(
+//                    cornerRadius: 100,
+//                    style: .continuous
+//                )
+//                .stroke(Color(.separator), lineWidth: 1)
+//            )
+//
+//            HStack(spacing: 12) {
+//                Button {
+//                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+//                    fontSize = max(2, fontSize - 1)
+//                } label: {
+//                    Text("-")
+//                        .font(.headline)
+//                }
+//                .buttonStyle(.plain)
+//                .foregroundStyle(Color("BrandZinerPrimary15"))
+//                .accessibilityIdentifier("fontSizeMinus")
+//                .accessibilityLabel("Decrease font size")
+//
+//                Button {
+//                    UIImpactFeedbackGenerator(style: .medium)
+//                        .impactOccurred()
+//                    fontSize = min(128, fontSize + 1)
+//                } label: {
+//                    Text("+")
+//                        .font(.headline)
+//                }
+//                .buttonStyle(.plain)
+//                .foregroundStyle(Color("BrandZinerPrimary15"))
+//                .accessibilityIdentifier("fontSizePlus")
+//                .accessibilityLabel("Increase font size")
+//            }
+//            .foregroundStyle(.primary)
+//        }
+//        .lineLimit(1)
+//        .truncationMode(.middle)
+//        .minimumScaleFactor(0.8)
+//        .padding(.horizontal, 12)
     }
 }
 
