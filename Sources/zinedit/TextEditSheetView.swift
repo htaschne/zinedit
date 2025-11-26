@@ -300,9 +300,6 @@ private struct FontStyleSegmented: View {
 #endif
 
 struct StepperPill: View {
-    let left: String
-    let right: String
-
     @Binding var fontSize: Double
 
     var body: some View {
@@ -347,6 +344,7 @@ struct StepperPill: View {
                 .accessibilityIdentifier("fontSizePlus")
                 .accessibilityLabel("Increase font size")
             }
+            .foregroundStyle(.primary)
         }
         .lineLimit(1)
         .truncationMode(.middle)
@@ -356,5 +354,5 @@ struct StepperPill: View {
 }
 
 #Preview("StepperPill") {
-    return StepperPill(left: "-", right: "+", fontSize: .constant(0))
+    return StepperPill(fontSize: .constant(0))
 }
