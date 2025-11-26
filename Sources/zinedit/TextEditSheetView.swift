@@ -115,6 +115,7 @@ struct TextEditSheet: View {
                                     .foregroundStyle(.primary)
                                 Spacer()
                                 StepperPill(fontSize: $fontSize)
+                                    .foregroundStyle(.primary)
                             }
                         }
 
@@ -313,10 +314,9 @@ struct StepperPill: View {
             .frame(height: 32)
         }
         .font(.title)
-        .foregroundStyle(.primary)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(.pink.opacity(0.5))
+                .fill(Color("BrandZinerPrimary15"))
         )
     }
 }
