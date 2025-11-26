@@ -100,7 +100,8 @@ struct TextEditSheet: View {
                                 .font(.headline)
                                 .foregroundStyle(.primary)
                         }
-                        .tint(Color("BrandZinerPrimary15"))
+                        .background(Color("BrandZinerPrimary15"))
+
                         LabeledContent("Font style") {
                             FontStyleSegmented(
                                 isBold: $isBold,
