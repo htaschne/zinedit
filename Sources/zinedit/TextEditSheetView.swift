@@ -113,9 +113,13 @@ struct TextEditSheet: View {
                                 .font(.body)
                                 .foregroundStyle(.primary)
                             Spacer()
-                            
-                            StepperPill(left: "-", right: "+", fontSize: $fontSize)
-                                .frame(minHeight: 32)
+
+                            StepperPill(
+                                left: "-",
+                                right: "+",
+                                fontSize: $fontSize
+                            )
+                            .frame(minHeight: 32)
                         }
 
                         LabeledContent("Font style") {
@@ -303,7 +307,7 @@ struct StepperPill: View {
 
     var body: some View {
         ZStack {
-            
+
             RoundedRectangle(
                 cornerRadius: 100,
                 style: .continuous
@@ -316,18 +320,14 @@ struct StepperPill: View {
                 )
                 .stroke(Color(.separator), lineWidth: 1)
             )
-            
+
             HStack(spacing: 12) {
                 Button {
-                    #if canImport(UIKit)
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    #endif
                     fontSize = max(2, fontSize - 1)
                 } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.title3)
-                        .frame(width: 40, height: 34)
-                        .contentShape(Rectangle())
+                    Text("-")
+                        .font(.headline)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Color("BrandZinerPrimary15"))
@@ -335,15 +335,12 @@ struct StepperPill: View {
                 .accessibilityLabel("Decrease font size")
 
                 Button {
-                    #if canImport(UIKit)
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    #endif
+                    UIImpactFeedbackGenerator(style: .medium)
+                        .impactOccurred()
                     fontSize = min(128, fontSize + 1)
                 } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title3)
-                        .frame(width: 40, height: 34)
-                        .contentShape(Rectangle())
+                    Text("+")
+                        .font(.headline)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Color("BrandZinerPrimary15"))
