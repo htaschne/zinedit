@@ -95,11 +95,12 @@ struct TextEditSheet: View {
                         }
                         .tint(.primary)
 
-                        Stepper(
-                            "Font size \(Int(fontSize))",
-                            value: $fontSize,
-                            in: 2...128
-                        )
+                        Stepper(value: $fontSize, in: 2...128) {
+                            Text("Size \(Int(fontSize))")
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                        }
+                        .tint(Color("BrandZinerPrimary15"))
                         LabeledContent("Font style") {
                             FontStyleSegmented(
                                 isBold: $isBold,
