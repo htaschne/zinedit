@@ -93,6 +93,7 @@ struct TextEditSheet: View {
                             .padding(.vertical, 6)
                             .accessibilityIdentifier("fontMenu")
                         }
+                        .tint(.primary)
 
                         Stepper(
                             "Font size \(Int(fontSize))",
