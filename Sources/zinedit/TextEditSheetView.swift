@@ -168,15 +168,39 @@ struct TextEditSheet: View {
                             )
                         )
 
-                        ColorPicker("Color", selection: $color)
-                            .listRowInsets(
-                                EdgeInsets(
-                                    top: 0,
-                                    leading: 16,
-                                    bottom: 0,
-                                    trailing: 16
-                                )
+                        ColorPicker(selection: $color, supportsOpacity: true) {
+                            HStack {
+                                Text("Color")
+                                    .font(.body)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                ZStack {
+                                    Circle()
+                                        .fill(
+                                            AngularGradient(
+                                                gradient: Gradient(colors: [
+                                                    .red, .orange, .yellow,
+                                                    .green, .cyan, .blue,
+                                                    .purple, .red,
+                                                ]),
+                                                center: .center
+                                            )
+                                        )
+                                    Circle()
+                                        .stroke(Color(.separator), lineWidth: 1)
+                                }
+                                .frame(width: 24, height: 24)
+                                .accessibilityIdentifier("colorSwatchIcon")
+                            }
+                        }
+                        .listRowInsets(
+                            EdgeInsets(
+                                top: 0,
+                                leading: 16,
+                                bottom: 0,
+                                trailing: 16
                             )
+                        )
                     }
                     Section("Preview") {
                         let font: Font = {
