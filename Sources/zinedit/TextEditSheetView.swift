@@ -15,7 +15,7 @@ struct TextEditSheet: View {
     @Binding var layer: EditorLayer
     @State private var text: String = ""
     @State private var fontSize: Double = 28
-    @State private var isBold = true
+    @State private var isBold = false
     @State private var isItalic = false
     @State private var color: Color = .primary
     var onApply: (() -> Void)? = nil
@@ -152,7 +152,7 @@ struct TextEditSheet: View {
                         Button {
                         } label: {
                             HStack {
-                                Text("Size")
+                                Text("Variations")
                                     .font(.body)
                                 Spacer()
                                 FontStylePill(
@@ -162,7 +162,7 @@ struct TextEditSheet: View {
                                 .frame(maxWidth: 92)
                             }
                         }
-                        .foregroundStyle(.primary)
+                        .buttonStyle(.plain)
                         .listRowInsets(
                             EdgeInsets(
                                 top: 0,
@@ -385,16 +385,30 @@ struct FontStylePill: View {
     var body: some View {
         HStack(alignment: .center, spacing: 0) {
             Button(action: { isBold.toggle() }) {
-                Image(systemName: "bold")
-                    .font(.headline)
+                if isBold {
+                    Image(systemName: "bold")
+                        .font(.headline)
+                        .foregroundStyle(Color("ConesIconOnBrand"))
+                } else {
+                    Image(systemName: "bold")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                }
 
             }
             .frame(width: 46)
             .frame(height: 32)
 
             Button(action: { isItalic.toggle() }) {
-                Image(systemName: "italic")
-                    .font(.body)
+                if isItalic {
+                    Image(systemName: "italic")
+                        .font(.body)
+                        .foregroundStyle(Color("ConesIconOnBrand"))
+                } else {
+                    Image(systemName: "italic")
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                }
             }
             .frame(width: 46)
             .frame(height: 32)
