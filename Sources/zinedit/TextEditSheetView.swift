@@ -392,6 +392,7 @@ struct FontStylePill: View {
                 }
 
             }
+            .buttonStyle(.plain)
             .frame(width: 46)
             .frame(height: 32)
 
@@ -406,6 +407,7 @@ struct FontStylePill: View {
                         .foregroundStyle(.primary)
                 }
             }
+            .buttonStyle(.plain)
             .frame(width: 46)
             .frame(height: 32)
         }
