@@ -222,7 +222,7 @@ public struct EditorCanvasView: View {
                 }
             }
             .toolbar(content: {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button {
                         Haptics.medium()
                         model.undo()
@@ -231,8 +231,7 @@ public struct EditorCanvasView: View {
                     }
                     .disabled(!model.canUndo)
                     .accessibilityIdentifier("undoTopButton")
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
+                    
                     Button {
                         Haptics.medium()
                         model.redo()
@@ -241,7 +240,6 @@ public struct EditorCanvasView: View {
                     }
                     .disabled(!model.canRedo)
                     .accessibilityIdentifier("redoTopButton")
-                    Spacer()
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
