@@ -124,6 +124,9 @@ struct TextEditSheet: View {
                             )
                         )
                         .tint(.primary)
+                        .onChange(of: selectedFontFamily) { _, _ in
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }
 
                         Button {
                         } label: {
@@ -198,6 +201,11 @@ struct TextEditSheet: View {
                                     .frame(width: 44, height: 44)
                                     .opacity(0.02)                       // invisible but tappable
                                     .allowsHitTesting(true)
+                                    .simultaneousGesture(
+                                        TapGesture().onEnded {
+                                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        }
+                                    )
                             )
                             .accessibilityIdentifier("colorSwatchIcon")
                         }
