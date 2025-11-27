@@ -220,13 +220,22 @@ public struct EditorCanvasView: View {
                                         Color("BrandZinerPrimary100")
                                     )
                             } else {
-                                EmptyView()
+                                Image(systemName: "arrow.left")
+                                    .frame(width: 28, height: 28)
+                                    .foregroundStyle(
+                                        Color("InterfaceFillGraysGray6")
+                                    )
                             }
 
                         }
                         .background(
-                            Circle()
-                                .fill(Color("BrandZinerPrimary15"))
+                            if currentPage > 0 {
+                                Circle()
+                                    .fill(Color("BrandZinerPrimary15"))
+                            } else {
+                                Circle()
+                                    .fill(Color("InterfaceFillGraysGray6"))
+                            }
 
                         )
                         .disabled(currentPage == 0)
@@ -257,12 +266,22 @@ public struct EditorCanvasView: View {
                                         Color("BrandZinerPrimary100")
                                     )
                             } else {
-                                EmptyView()
+                                Image(systemName: "arrow.right")
+                                    .frame(width: 28, height: 28)
+                                    .foregroundStyle(
+                                        Color("InterfaceFillGraysGray6")
+                                    )
                             }
                         }
                         .background(
-                            Circle()
-                                .fill(Color("BrandZinerPrimary15"))
+                            if currentPage < 7 {
+                                Circle()
+                                    .fill(Color("BrandZinerPrimary15"))
+                            } else {
+                                Circle()
+                                    .fill(Color("InterfaceFillGraysGray6"))
+                            }
+
                         )
                         .disabled(currentPage == 7)
                         .accessibilityIdentifier("pageNextButton")
