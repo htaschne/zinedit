@@ -241,6 +241,7 @@ public struct EditorCanvasView: View {
                     }
                     .disabled(!model.canRedo)
                     .accessibilityIdentifier("redoTopButton")
+                    Spacer()
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
