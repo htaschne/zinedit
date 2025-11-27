@@ -309,6 +309,7 @@ public struct EditorCanvasView: View {
                         if let id = model.selection,
                             let binding = bindingForLayer(id)
                         {
+                            binding.position.wrappedValue = .zero
                             selectedTextBinding = binding
                             showTextSheet = true
                         }
@@ -339,6 +340,7 @@ public struct EditorCanvasView: View {
                                 if let id = model.selection,
                                     let binding = bindingForLayer(id)
                                 {
+                                    binding.position.wrappedValue = .zero
                                     selectedDrawingBinding = binding
                                     showDrawingSheet = true
                                 }
@@ -437,6 +439,11 @@ public struct EditorCanvasView: View {
             .onChange(of: model.photoSelection) { _, _ in
                 Task { @MainActor in
                     await model.loadSelectedPhoto()
+                    if let id = model.selection,
+                        let binding = bindingForLayer(id)
+                    {
+                        binding.position.wrappedValue = .zero
+                    }
                 }
             }
             // keep EditorModel and host binding in sync
@@ -597,7 +604,7 @@ public struct EditorLayer: Identifiable, Equatable, Codable {
     public init(
         id: UUID = UUID(),
         content: EditorContent,
-        position: CGPoint = CGPoint(x: 150, y: 150),
+        position: CGPoint = .zero, /*CGPoint(x: 150, y: 150),*/
         scale: CGFloat = 1,
         rotation: Angle = .degrees(0),
         isHidden: Bool = false
