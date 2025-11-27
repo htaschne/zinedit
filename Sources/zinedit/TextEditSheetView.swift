@@ -35,7 +35,14 @@ struct TextEditSheet: View {
                                 isBold = model.weight == .bold
                                 color = model.color
                             }
-                            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                            .listRowInsets(
+                                EdgeInsets(
+                                    top: 0,
+                                    leading: 16,
+                                    bottom: 0,
+                                    trailing: 16
+                                )
+                            )
                     }
                     Section("Style") {
                         Menu {
@@ -107,11 +114,19 @@ struct TextEditSheet: View {
                             .padding(.vertical, 6)
                             .accessibilityIdentifier("fontMenu")
                         }
-                        
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+
+                        .listRowInsets(
+                            EdgeInsets(
+                                top: 0,
+                                leading: 16,
+                                bottom: 0,
+                                trailing: 16
+                            )
+                        )
                         .tint(.primary)
 
-                        Button {} label: {
+                        Button {
+                        } label: {
                             HStack {
                                 Text("Size")
                                     .font(.body)
@@ -121,26 +136,51 @@ struct TextEditSheet: View {
                                     .foregroundStyle(Color("ConesIconOnBrand"))
                                 Spacer()
                                 StepperPill(fontSize: $fontSize)
+                                    .frame(maxWidth: 92)
                             }
                         }
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                        .listRowInsets(
+                            EdgeInsets(
+                                top: 0,
+                                leading: 16,
+                                bottom: 0,
+                                trailing: 16
+                            )
+                        )
                         .foregroundStyle(.primary)
 
-
-                        Button {} label: {
+                        Button {
+                        } label: {
                             HStack {
                                 Text("Size")
                                     .font(.body)
                                 Spacer()
-                                FontStylePill(isBold: $isBold, isItalic: $isItalic)
-                                    .frame(maxWidth: 92)
+                                FontStylePill(
+                                    isBold: $isBold,
+                                    isItalic: $isItalic
+                                )
+                                .frame(maxWidth: 92)
                             }
                         }
                         .foregroundStyle(.primary)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                        
+                        .listRowInsets(
+                            EdgeInsets(
+                                top: 0,
+                                leading: 16,
+                                bottom: 0,
+                                trailing: 16
+                            )
+                        )
+
                         ColorPicker("Color", selection: $color)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                            .listRowInsets(
+                                EdgeInsets(
+                                    top: 0,
+                                    leading: 16,
+                                    bottom: 0,
+                                    trailing: 16
+                                )
+                            )
                     }
                     Section("Preview") {
                         let font: Font = {
@@ -161,7 +201,6 @@ struct TextEditSheet: View {
                                 )
                             }
                         }()
-                        
 
                         Group {
                             if selectedFontFamily == "System" && isItalic {
@@ -170,7 +209,14 @@ struct TextEditSheet: View {
                                 Text(text).font(font)
                             }
                         }
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                        .listRowInsets(
+                            EdgeInsets(
+                                top: 0,
+                                leading: 16,
+                                bottom: 0,
+                                trailing: 16
+                            )
+                        )
                         .foregroundStyle(color)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding()
@@ -290,27 +336,19 @@ private struct FontStyleSegmented: View {
     }
 }
 
-#if canImport(UIKit)
-    private func postscriptName(
-        forFamily family: String,
-        bold: Bool,
-        italic: Bool
-    ) -> String? {
-        var traits = UIFontDescriptor.SymbolicTraits()
-        if bold { traits.insert(.traitBold) }
-        if italic { traits.insert(.traitItalic) }
-        let base = UIFontDescriptor(fontAttributes: [.family: family])
-        let desc = base.withSymbolicTraits(traits) ?? base
-        let font = UIFont(descriptor: desc, size: 16)
-        return font.fontName
-    }
-#else
-    private func postscriptName(
-        forFamily family: String,
-        bold: Bool,
-        italic: Bool
-    ) -> String? { nil }
-#endif
+private func postscriptName(
+    forFamily family: String,
+    bold: Bool,
+    italic: Bool
+) -> String? {
+    var traits = UIFontDescriptor.SymbolicTraits()
+    if bold { traits.insert(.traitBold) }
+    if italic { traits.insert(.traitItalic) }
+    let base = UIFontDescriptor(fontAttributes: [.family: family])
+    let desc = base.withSymbolicTraits(traits) ?? base
+    let font = UIFont(descriptor: desc, size: 16)
+    return font.fontName
+}
 
 struct StepperPill: View {
     @Binding var fontSize: Double
@@ -324,7 +362,7 @@ struct StepperPill: View {
             }
             .frame(width: 46)
             .frame(height: 32)
-            
+
             Button(action: { fontSize += 1 }) {
                 Image(systemName: "plus")
                     .font(.headline)
@@ -353,11 +391,7 @@ struct FontStylePill: View {
             }
             .frame(width: 46)
             .frame(height: 32)
-            
-            Text("|")
-                .font(.body)
-                .foregroundStyle(.gray.opacity(0.5))
-            
+
             Button(action: { isItalic.toggle() }) {
                 Image(systemName: "italic")
                     .font(.body)
@@ -373,6 +407,6 @@ struct FontStylePill: View {
     }
 }
 
-#Preview("StepperPill") {
-    return StepperPill(fontSize: .constant(0))
+#Preview {
+    FontStylePill(isBold: .constant(true), isItalic: .constant(false))
 }
