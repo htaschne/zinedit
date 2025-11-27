@@ -101,7 +101,7 @@ struct TextEditSheet: View {
                                     .minimumScaleFactor(0.8)
                                     .padding(.horizontal, 12)
                                 }
-                                .frame(minWidth: 78, minHeight: 34)
+                                .frame(minWidth: 78, minHeight: 32)
                                 .fixedSize(horizontal: true, vertical: false)
                                 .contentShape(
                                     RoundedRectangle(
