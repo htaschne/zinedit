@@ -78,7 +78,7 @@ public struct EditorCanvasView: View {
         NavigationStack {
             ZStack {
                 Color("InterfaceFillGraysGray6").ignoresSafeArea()
-                VStack(spacing: 20) {
+                VStack(spacing: 0) {
                     GeometryReader { geo in
                         let outer = geo.size
                         let hInset: CGFloat = 16
