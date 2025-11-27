@@ -79,109 +79,19 @@ public struct EditorCanvasView: View {
             ZStack {
                 Color("InterfaceFillGraysGray6").ignoresSafeArea()
                 VStack(spacing: 12) {
-                    GeometryReader { geo in
-                        let outer = geo.size
-                        let hInset: CGFloat = 16
-                        let vInset: CGFloat = 30
-                        let inner = CGSize(
-                            width: max(0, outer.width - hInset * 2),
-                            height: max(0, outer.height - vInset * 2)
-                        )
-                        let a4Ratio: CGFloat = 297.0 / 210.0  // height / width
-                        let canvas: CGSize = {
-                            let wFit = inner.width
-                            let hFit = inner.height
-                            let hFromW = wFit * a4Ratio
-                            if hFromW <= hFit {
-                                return CGSize(width: wFit, height: hFromW)
-                            } else {
-                                let wFromH = hFit / a4Ratio
-                                return CGSize(width: wFromH, height: hFit)
-                            }
-                        }()
-
-                        ZStack {
-                            // Canvas background color (inside margins)
-                            Color("SystemLightDarkSystemBackground")
-
-                            ForEach($model.layers) { $layer in
-                                if !layer.isHidden {
-                                    LayerView(
-                                        layer: $layer,
-                                        onBeginInteraction: {
-                                            model.registerUndoPoint()
-                                        }
-                                    )
-                                    .onTapGesture { model.select(layer.id) }
-                                    .simultaneousGesture(
-                                        TapGesture(count: 2).onEnded {
-                                            switch layer.content {
-                                            case .text:
-                                                model.select(layer.id)
-                                                selectedTextBinding = $layer
-                                                showTextSheet = true
-                                            case .drawing:
-                                                #if canImport(PencilKit)
-                                                    model.select(layer.id)
-                                                    selectedDrawingBinding =
-                                                        $layer
-                                                    showDrawingSheet = true
-                                                #endif
-                                            default:
-                                                break
-                                            }
-                                        }
-                                    )
-                                    .overlay {
-                                        if model.selection == layer.id
-                                            && !layer.isHidden
-                                        {
-                                            SelectionBox()
-                                                .allowsHitTesting(false)
-                                                .scaleEffect(layer.scale)
-                                                .rotationEffect(layer.rotation)
-                                                .offset(
-                                                    x: layer.position.x,
-                                                    y: layer.position.y
-                                                )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        // Exact canvas size & centered position with margins respected
-                        .frame(width: canvas.width, height: canvas.height)
-                        .clipShape(
-                            RoundedRectangle(
-                                cornerRadius: 12,
-                                style: .continuous
+                    VStack(spacing: 20) {
+                        GeometryReader { geo in
+                            let outer = geo.size
+                            let hInset: CGFloat = 16
+                            let vInset: CGFloat = 30
+                            let inner = CGSize(
+                                width: max(0, outer.width - hInset * 2),
+                                height: max(0, outer.height - vInset * 2)
                             )
-                        )
-                        .position(x: outer.width / 2, y: outer.height / 2)
-                        .accessibilityIdentifier("canvas")
-                        .contentShape(
-                            RoundedRectangle(
-                                cornerRadius: 12,
-                                style: .continuous
-                            )
-                        )
-                        .onTapGesture { model.selection = nil }
-                        .onDrop(
-                            of: ["public.image", "public.text"],
-                            isTargeted: nil
-                        ) { providers in
-                            model.handleDrop(providers, in: canvas)
-                            return true
-                        }
-                        .onAppear { canvasSize = canvas }
-                        .onChange(of: outer) { _, newOuter in
-                            let updatedInner = CGSize(
-                                width: max(0, newOuter.width - hInset * 2),
-                                height: max(0, newOuter.height - vInset * 2)
-                            )
-                            let updatedCanvas: CGSize = {
-                                let wFit = updatedInner.width
-                                let hFit = updatedInner.height
+                            let a4Ratio: CGFloat = 297.0 / 210.0  // height / width
+                            let canvas: CGSize = {
+                                let wFit = inner.width
+                                let hFit = inner.height
                                 let hFromW = wFit * a4Ratio
                                 if hFromW <= hFit {
                                     return CGSize(width: wFit, height: hFromW)
@@ -190,61 +100,167 @@ public struct EditorCanvasView: View {
                                     return CGSize(width: wFromH, height: hFit)
                                 }
                             }()
-                            canvasSize = updatedCanvas
-                        }
-                    }
 
-                    // Pagination controls under the canvas
-                    HStack(spacing: 8) {
-                        Button {
-                            Haptics.medium()
-                            if currentPage > 0 {
-                                pages[currentPage] = model.layers
-                                currentPage -= 1
-                                model.selection = nil
-                                model.layers = pages[currentPage]
+                            ZStack {
+                                // Canvas background color (inside margins)
+                                Color("SystemLightDarkSystemBackground")
+
+                                ForEach($model.layers) { $layer in
+                                    if !layer.isHidden {
+                                        LayerView(
+                                            layer: $layer,
+                                            onBeginInteraction: {
+                                                model.registerUndoPoint()
+                                            }
+                                        )
+                                        .onTapGesture { model.select(layer.id) }
+                                        .simultaneousGesture(
+                                            TapGesture(count: 2).onEnded {
+                                                switch layer.content {
+                                                case .text:
+                                                    model.select(layer.id)
+                                                    selectedTextBinding = $layer
+                                                    showTextSheet = true
+                                                case .drawing:
+                                                    #if canImport(PencilKit)
+                                                        model.select(layer.id)
+                                                        selectedDrawingBinding =
+                                                            $layer
+                                                        showDrawingSheet = true
+                                                    #endif
+                                                default:
+                                                    break
+                                                }
+                                            }
+                                        )
+                                        .overlay {
+                                            if model.selection == layer.id
+                                                && !layer.isHidden
+                                            {
+                                                SelectionBox()
+                                                    .allowsHitTesting(false)
+                                                    .scaleEffect(layer.scale)
+                                                    .rotationEffect(
+                                                        layer.rotation
+                                                    )
+                                                    .offset(
+                                                        x: layer.position.x,
+                                                        y: layer.position.y
+                                                    )
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        } label: {
-                            Image(systemName: "arrow.left")
-                                .frame(width: 28, height: 28)
-                                .foregroundStyle(Color("BrandZinerPrimary100"))
-                        }
-                        .background(
-                            Circle()
-                                .fill(.fill.tertiary)
-
-                        )
-                        .disabled(currentPage == 0)
-                        .accessibilityIdentifier("pagePrevButton")
-
-                        Text("\(currentPage + 1)")
-                            .font(.body.weight(.semibold))
-                            .accessibilityIdentifier("pageLabel")
-                            .frame(width: 40, height: 22, alignment: .center)
-
-                        Button {
-                            Haptics.medium()
-                            if currentPage < 7 {
-                                pages[currentPage] = model.layers
-                                currentPage += 1
-                                model.selection = nil
-                                model.layers = pages[currentPage]
+                            // Exact canvas size & centered position with margins respected
+                            .frame(width: canvas.width, height: canvas.height)
+                            .clipShape(
+                                RoundedRectangle(
+                                    cornerRadius: 12,
+                                    style: .continuous
+                                )
+                            )
+                            .position(x: outer.width / 2, y: outer.height / 2)
+                            .accessibilityIdentifier("canvas")
+                            .contentShape(
+                                RoundedRectangle(
+                                    cornerRadius: 12,
+                                    style: .continuous
+                                )
+                            )
+                            .onTapGesture { model.selection = nil }
+                            .onDrop(
+                                of: ["public.image", "public.text"],
+                                isTargeted: nil
+                            ) { providers in
+                                model.handleDrop(providers, in: canvas)
+                                return true
                             }
-                        } label: {
-                            Image(systemName: "arrow.right")
-                                .frame(width: 28, height: 28)
-                                .foregroundStyle(Color("BrandZinerPrimary100"))
+                            .onAppear { canvasSize = canvas }
+                            .onChange(of: outer) { _, newOuter in
+                                let updatedInner = CGSize(
+                                    width: max(0, newOuter.width - hInset * 2),
+                                    height: max(0, newOuter.height - vInset * 2)
+                                )
+                                let updatedCanvas: CGSize = {
+                                    let wFit = updatedInner.width
+                                    let hFit = updatedInner.height
+                                    let hFromW = wFit * a4Ratio
+                                    if hFromW <= hFit {
+                                        return CGSize(
+                                            width: wFit,
+                                            height: hFromW
+                                        )
+                                    } else {
+                                        let wFromH = hFit / a4Ratio
+                                        return CGSize(
+                                            width: wFromH,
+                                            height: hFit
+                                        )
+                                    }
+                                }()
+                                canvasSize = updatedCanvas
+                            }
                         }
-                        .background(
-                            Circle()
-                                .fill(.fill.tertiary)
-                        )
-                        .disabled(currentPage == 7)
-                        .accessibilityIdentifier("pageNextButton")
+
+                        // Pagination controls under the canvas
+                        HStack(spacing: 8) {
+                            Button {
+                                Haptics.medium()
+                                if currentPage > 0 {
+                                    pages[currentPage] = model.layers
+                                    currentPage -= 1
+                                    model.selection = nil
+                                    model.layers = pages[currentPage]
+                                }
+                            } label: {
+                                Image(systemName: "arrow.left")
+                                    .frame(width: 28, height: 28)
+                                    .foregroundStyle(
+                                        Color("BrandZinerPrimary100")
+                                    )
+                            }
+                            .background(
+                                Circle()
+                                    .fill(.fill.tertiary)
+
+                            )
+                            .disabled(currentPage == 0)
+                            .accessibilityIdentifier("pagePrevButton")
+
+                            Text("\(currentPage + 1)")
+                                .font(.body.weight(.semibold))
+                                .accessibilityIdentifier("pageLabel")
+                                .frame(
+                                    width: 40,
+                                    height: 22,
+                                    alignment: .center
+                                )
+
+                            Button {
+                                Haptics.medium()
+                                if currentPage < 7 {
+                                    pages[currentPage] = model.layers
+                                    currentPage += 1
+                                    model.selection = nil
+                                    model.layers = pages[currentPage]
+                                }
+                            } label: {
+                                Image(systemName: "arrow.right")
+                                    .frame(width: 28, height: 28)
+                                    .foregroundStyle(
+                                        Color("BrandZinerPrimary100")
+                                    )
+                            }
+                            .background(
+                                Circle()
+                                    .fill(.fill.tertiary)
+                            )
+                            .disabled(currentPage == 7)
+                            .accessibilityIdentifier("pageNextButton")
+                        }
+                        .padding(.horizontal, 16)
                     }
-                    .padding(.top, 20)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 8)
                 }
             }
             .toolbar(content: {
