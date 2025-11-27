@@ -148,21 +148,17 @@ struct TextEditSheet: View {
                             )
                         )
                         .foregroundStyle(.primary)
-
-                        Button {
-                        } label: {
-                            HStack {
-                                Text("Variations")
-                                    .font(.body)
-                                Spacer()
-                                FontStylePill(
-                                    isBold: $isBold,
-                                    isItalic: $isItalic
-                                )
-                                .frame(maxWidth: 92)
-                            }
+                        
+                        HStack {
+                            Text("Variations")
+                                .font(.body)
+                            Spacer()
+                            FontStylePill(
+                                isBold: $isBold,
+                                isItalic: $isItalic
+                            )
+                            .frame(maxWidth: 92)
                         }
-                        .buttonStyle(.plain)
                         .listRowInsets(
                             EdgeInsets(
                                 top: 0,
