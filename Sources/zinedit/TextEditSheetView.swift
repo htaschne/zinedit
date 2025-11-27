@@ -111,7 +111,7 @@ struct TextEditSheet: View {
                                 )
                                 .accessibilityIdentifier("fontSelectedBadge")
                             }
-                            .padding(.vertical, 6)
+                            .padding(.vertical, 0)
                             .accessibilityIdentifier("fontMenu")
                         }
 
