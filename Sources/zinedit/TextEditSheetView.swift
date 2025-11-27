@@ -101,7 +101,7 @@ struct TextEditSheet: View {
                                     .minimumScaleFactor(0.8)
                                     .padding(.horizontal, 12)
                                 }
-                                .frame(minWidth: 78, minHeight: 32)
+                                .frame(minWidth: 78, minHeight: 30)
                                 .fixedSize(horizontal: true, vertical: false)
                                 .contentShape(
                                     RoundedRectangle(
@@ -111,7 +111,7 @@ struct TextEditSheet: View {
                                 )
                                 .accessibilityIdentifier("fontSelectedBadge")
                             }
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 10)
                             .accessibilityIdentifier("fontMenu")
                         }
 
