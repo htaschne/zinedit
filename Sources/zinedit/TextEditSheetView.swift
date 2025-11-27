@@ -394,7 +394,7 @@ struct FontStylePill: View {
 
             Button(action: { isItalic.toggle() }) {
                 Image(systemName: "italic")
-                    .font(.headline)
+                    .font(.body)
             }
             .frame(width: 46)
             .frame(height: 32)
