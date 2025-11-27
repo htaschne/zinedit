@@ -383,10 +383,10 @@ struct FontStylePill: View {
     @Binding var isItalic: Bool
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center, spacing: 0) {
             Button(action: { isBold.toggle() }) {
                 Image(systemName: "bold")
-                    .font(.body)
+                    .font(.headline)
 
             }
             .frame(width: 46)
@@ -394,7 +394,7 @@ struct FontStylePill: View {
 
             Button(action: { isItalic.toggle() }) {
                 Image(systemName: "italic")
-                    .font(.body)
+                    .font(.headline)
             }
             .frame(width: 46)
             .frame(height: 32)
@@ -405,6 +405,7 @@ struct FontStylePill: View {
                 .fill(Color("BrandZinerPrimary15"))
         )
     }
+    
 }
 
 #Preview {
