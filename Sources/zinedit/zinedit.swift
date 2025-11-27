@@ -349,7 +349,7 @@ public struct EditorCanvasView: View {
                         showLayersSheet = true
                     } label: {
                         Label("Layers", systemImage: "square.3.layers.3d")
-                            .disabled($layer.isEmpty)
+                            .disabled(self.layers.isEmpty)
                     }
                     .accessibilityIdentifier("layersButton")
 
