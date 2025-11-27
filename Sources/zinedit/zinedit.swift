@@ -268,7 +268,7 @@ public struct EditorCanvasView: View {
                     .disabled(!model.canRedo)
                     .accessibilityIdentifier("redoTopButton")
                 }
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .primaryAction) {
                     Button {
                         Haptics.medium()
                         exportAllPages()
