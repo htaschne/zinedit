@@ -219,6 +219,8 @@ public struct EditorCanvasView: View {
                                     .foregroundStyle(
                                         Color("BrandZinerPrimary100")
                                     )
+                            } else {
+                                EmptyView()
                             }
 
                         }
@@ -254,6 +256,8 @@ public struct EditorCanvasView: View {
                                     .foregroundStyle(
                                         Color("BrandZinerPrimary100")
                                     )
+                            } else {
+                                EmptyView()
                             }
                         }
                         .background(
