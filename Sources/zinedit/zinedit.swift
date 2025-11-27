@@ -14,7 +14,9 @@ import SwiftUI
 @MainActor
 enum Haptics {
     @MainActor
-    static func medium() { UIImpactFeedbackGenerator(style: .medium).impactOccurred() }
+    static func medium() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+    }
 }
 
 // MARK: - Public API
@@ -85,7 +87,7 @@ public struct EditorCanvasView: View {
                             width: max(0, outer.width - hInset * 2),
                             height: max(0, outer.height - vInset * 2)
                         )
-                        let a4Ratio: CGFloat = 297.0 / 210.0 // height / width
+                        let a4Ratio: CGFloat = 297.0 / 210.0  // height / width
                         let canvas: CGSize = {
                             let wFit = inner.width
                             let hFit = inner.height
@@ -104,46 +106,70 @@ public struct EditorCanvasView: View {
 
                             ForEach($model.layers) { $layer in
                                 if !layer.isHidden {
-                                    LayerView(layer: $layer, onBeginInteraction: { model.registerUndoPoint() })
-                                        .onTapGesture { model.select(layer.id) }
-                                        .simultaneousGesture(
-                                            TapGesture(count: 2).onEnded {
-                                                switch layer.content {
-                                                case .text:
+                                    LayerView(
+                                        layer: $layer,
+                                        onBeginInteraction: {
+                                            model.registerUndoPoint()
+                                        }
+                                    )
+                                    .onTapGesture { model.select(layer.id) }
+                                    .simultaneousGesture(
+                                        TapGesture(count: 2).onEnded {
+                                            switch layer.content {
+                                            case .text:
+                                                model.select(layer.id)
+                                                selectedTextBinding = $layer
+                                                showTextSheet = true
+                                            case .drawing:
+                                                #if canImport(PencilKit)
                                                     model.select(layer.id)
-                                                    selectedTextBinding = $layer
-                                                    showTextSheet = true
-                                                case .drawing:
-                                                    #if canImport(PencilKit)
-                                                        model.select(layer.id)
-                                                        selectedDrawingBinding = $layer
-                                                        showDrawingSheet = true
-                                                    #endif
-                                                default:
-                                                    break
-                                                }
-                                            }
-                                        )
-                                        .overlay {
-                                            if model.selection == layer.id && !layer.isHidden {
-                                                SelectionBox()
-                                                    .allowsHitTesting(false)
-                                                    .scaleEffect(layer.scale)
-                                                    .rotationEffect(layer.rotation)
-                                                    .offset(x: layer.position.x, y: layer.position.y)
+                                                    selectedDrawingBinding =
+                                                        $layer
+                                                    showDrawingSheet = true
+                                                #endif
+                                            default:
+                                                break
                                             }
                                         }
+                                    )
+                                    .overlay {
+                                        if model.selection == layer.id
+                                            && !layer.isHidden
+                                        {
+                                            SelectionBox()
+                                                .allowsHitTesting(false)
+                                                .scaleEffect(layer.scale)
+                                                .rotationEffect(layer.rotation)
+                                                .offset(
+                                                    x: layer.position.x,
+                                                    y: layer.position.y
+                                                )
+                                        }
+                                    }
                                 }
                             }
                         }
                         // Exact canvas size & centered position with margins respected
                         .frame(width: canvas.width, height: canvas.height)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .clipShape(
+                            RoundedRectangle(
+                                cornerRadius: 12,
+                                style: .continuous
+                            )
+                        )
                         .position(x: outer.width / 2, y: outer.height / 2)
                         .accessibilityIdentifier("canvas")
-                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .contentShape(
+                            RoundedRectangle(
+                                cornerRadius: 12,
+                                style: .continuous
+                            )
+                        )
                         .onTapGesture { model.selection = nil }
-                        .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers in
+                        .onDrop(
+                            of: ["public.image", "public.text"],
+                            isTargeted: nil
+                        ) { providers in
                             model.handleDrop(providers, in: canvas)
                             return true
                         }
@@ -169,7 +195,7 @@ public struct EditorCanvasView: View {
                     }
 
                     // Pagination controls under the canvas
-                    HStack (spacing: 8) {
+                    HStack(spacing: 8) {
                         Button {
                             Haptics.medium()
                             if currentPage > 0 {
@@ -231,12 +257,13 @@ public struct EditorCanvasView: View {
                     }
                     .disabled(!model.canUndo)
                     .accessibilityIdentifier("undoTopButton")
-                    
+
                     Button {
                         Haptics.medium()
                         model.redo()
                     } label: {
                         Image(systemName: "arrow.uturn.forward")
+                            .padding(.trailing, 8)
                     }
                     .disabled(!model.canRedo)
                     .accessibilityIdentifier("redoTopButton")
@@ -274,9 +301,11 @@ public struct EditorCanvasView: View {
                             Label("Image", systemImage: "photo.badge.plus")
                         }
                         .accessibilityIdentifier("imageButton")
-                        .simultaneousGesture(TapGesture().onEnded {
-                            Haptics.medium()
-                        })
+                        .simultaneousGesture(
+                            TapGesture().onEnded {
+                                Haptics.medium()
+                            }
+                        )
                     }
                     #if canImport(PencilKit)
                         if config.paint != nil {
@@ -318,8 +347,9 @@ public struct EditorCanvasView: View {
 
                     // Only show Noise in More menu, and only for selected image layers
                     if let id = model.selection,
-                       let index = model.indexOfLayer(id),
-                       case .image = model.layers[index].content {
+                        let index = model.indexOfLayer(id),
+                        case .image = model.layers[index].content
+                    {
                         Menu {
                             Button {
                                 Haptics.medium()
@@ -328,7 +358,10 @@ public struct EditorCanvasView: View {
                                     showNoiseSheet = true
                                 }
                             } label: {
-                                Label("Noise…", systemImage: "slider.horizontal.3")
+                                Label(
+                                    "Noise…",
+                                    systemImage: "slider.horizontal.3"
+                                )
                             }
                             .accessibilityIdentifier("noiseMenuItem")
                         } label: {
@@ -340,7 +373,10 @@ public struct EditorCanvasView: View {
             })
             .sheet(isPresented: $showTextSheet) {
                 if let $layer = selectedTextBinding {
-                    TextEditSheet(layer: $layer, onApply: { model.registerUndoPoint() })
+                    TextEditSheet(
+                        layer: $layer,
+                        onApply: { model.registerUndoPoint() }
+                    )
                 }
             }
             #if canImport(PencilKit)
@@ -348,19 +384,30 @@ public struct EditorCanvasView: View {
                     if let $layer = selectedDrawingBinding,
                         let paint = config.paint
                     {
-                        DrawingEditSheet(layer: $layer, config: paint, onApply: { model.registerUndoPoint() })
+                        DrawingEditSheet(
+                            layer: $layer,
+                            config: paint,
+                            onApply: { model.registerUndoPoint() }
+                        )
                     }
                 }
             #endif
             .sheet(isPresented: $showNoiseSheet) {
                 if let $layer = selectedImageBinding {
-                    NoiseEditSheet(layer: $layer, onApply: { model.registerUndoPoint() })
+                    NoiseEditSheet(
+                        layer: $layer,
+                        onApply: { model.registerUndoPoint() }
+                    )
                 }
             }
             .sheet(isPresented: $showLayersSheet) {
-                LayersSheet(layers: $model.layers, selection: $model.selection, onChange: { model.registerUndoPoint() })
-                    .presentationDetents([.fraction(0.5), .large])
-                    .presentationDragIndicator(.visible)
+                LayersSheet(
+                    layers: $model.layers,
+                    selection: $model.selection,
+                    onChange: { model.registerUndoPoint() }
+                )
+                .presentationDetents([.fraction(0.5), .large])
+                .presentationDragIndicator(.visible)
             }
             .onChange(of: model.photoSelection) { _, _ in
                 Task { @MainActor in
@@ -377,7 +424,7 @@ public struct EditorCanvasView: View {
             }
             .onChange(of: model.layers) { _, newValue in
                 pages[currentPage] = newValue
-                self.layers = newValue          // keep host in sync with the current page
+                self.layers = newValue  // keep host in sync with the current page
                 self.onChange?(newValue)
             }
             .onChange(of: layers) { oldValue, newValue in
@@ -657,7 +704,8 @@ extension TextModel {
         let w = try c.decode(String.self, forKey: .weight)
         self.weight = Font.Weight.fromName(w)
         self.fontName = try c.decodeIfPresent(String.self, forKey: .fontName)
-        self.isItalic = try c.decodeIfPresent(Bool.self, forKey: .isItalic) ?? false
+        self.isItalic =
+            try c.decodeIfPresent(Bool.self, forKey: .isItalic) ?? false
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -709,9 +757,9 @@ struct LayersSheet: View {
                             )
                         Spacer()
                         Button {
-#if canImport(UIKit)
-                            Haptics.medium()
-#endif
+                            #if canImport(UIKit)
+                                Haptics.medium()
+                            #endif
                             onChange?()
                             layers[idx].isHidden.toggle()
                             if layers[idx].isHidden, selection == layer.id {
@@ -734,9 +782,9 @@ struct LayersSheet: View {
                     .onTapGesture { selection = layer.id }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button {
-#if canImport(UIKit)
-                            Haptics.medium()
-#endif
+                            #if canImport(UIKit)
+                                Haptics.medium()
+                            #endif
                             onChange?()
                             layers[idx].isHidden.toggle()
                             if layers[idx].isHidden, selection == layer.id {
@@ -760,12 +808,12 @@ struct LayersSheet: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
-#if canImport(UIKit)
-                        Haptics.medium();
-#endif
+                        #if canImport(UIKit)
+                            Haptics.medium()
+                        #endif
                         dismiss()
                     }
-                        .accessibilityIdentifier("layersDoneButton")
+                    .accessibilityIdentifier("layersDoneButton")
                 }
             }
         }
@@ -890,9 +938,9 @@ struct LayerRowThumb: View {
                                 id: \.offset
                             ) { idx, brush in
                                 Button {
-#if canImport(UIKit)
-                                    Haptics.medium()
-#endif
+                                    #if canImport(UIKit)
+                                        Haptics.medium()
+                                    #endif
                                     selectedBrushIndex = idx
                                     erasing = false
                                 } label: {
@@ -949,7 +997,7 @@ struct LayerRowThumb: View {
                     }
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Cancel") {
-                            Haptics.medium();
+                            Haptics.medium()
                             dismiss()
                         }
                         .accessibilityIdentifier("cancelDrawingButton")
@@ -1090,9 +1138,10 @@ struct LayerRowThumb: View {
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Cancel") {
-                            Haptics.medium(); dismiss()
+                            Haptics.medium()
+                            dismiss()
                         }
-                            .accessibilityIdentifier("cancelNoiseButton")
+                        .accessibilityIdentifier("cancelNoiseButton")
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Apply") {
