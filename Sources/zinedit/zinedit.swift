@@ -263,7 +263,7 @@ public struct EditorCanvasView: View {
                         model.redo()
                     } label: {
                         Image(systemName: "arrow.uturn.forward")
-                            .padding(.trailing, 8)
+                            .padding(.trailing, 10)
                     }
                     .disabled(!model.canRedo)
                     .accessibilityIdentifier("redoTopButton")
