@@ -94,10 +94,10 @@ struct LayerView: View {
                 }
             }
             .padding(8)
-            .background(
-                .thinMaterial,
-                in: RoundedRectangle(cornerRadius: 8)
-            )
+//            .background(
+//                .thinMaterial,
+//                in: RoundedRectangle(cornerRadius: 8)
+//            )
         case .image(let image):
             if let uiImage = UIImage(data: image.data) {
                 Image(uiImage: uiImage)
