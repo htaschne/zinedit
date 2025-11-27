@@ -213,30 +213,21 @@ public struct EditorCanvasView: View {
                                 model.layers = pages[currentPage]
                             }
                         } label: {
-                            if currentPage > 0 {
-                                Image(systemName: "arrow.left")
-                                    .frame(width: 28, height: 28)
-                                    .foregroundStyle(
-                                        Color("BrandZinerPrimary100")
-                                    )
-                            } else {
-                                Image(systemName: "arrow.left")
-                                    .frame(width: 28, height: 28)
-                                    .foregroundStyle(
-                                        Color("InterfaceFillGraysGray6")
-                                    )
-                            }
-
+                            Image(systemName: "arrow.left")
+                                .frame(width: 28, height: 28)
+                                .foregroundStyle(
+                                    currentPage > 0
+                                        ? Color("BrandZinerPrimary100")
+                                        : Color("InterfaceFillGraysGray6")
+                                )
                         }
                         .background(
-                            if currentPage > 0 {
-                                Circle()
-                                    .fill(Color("BrandZinerPrimary15"))
-                            } else {
-                                Circle()
-                                    .fill(Color("InterfaceFillGraysGray6"))
-                            }
-
+                            Circle()
+                                .fill(
+                                    currentPage > 0
+                                        ? Color("BrandZinerPrimary15")
+                                        : Color("InterfaceFillGraysGray6")
+                                )
                         )
                         .disabled(currentPage == 0)
                         .accessibilityIdentifier("pagePrevButton")
@@ -259,29 +250,21 @@ public struct EditorCanvasView: View {
                                 model.layers = pages[currentPage]
                             }
                         } label: {
-                            if currentPage < 7 {
-                                Image(systemName: "arrow.right")
-                                    .frame(width: 28, height: 28)
-                                    .foregroundStyle(
-                                        Color("BrandZinerPrimary100")
-                                    )
-                            } else {
-                                Image(systemName: "arrow.right")
-                                    .frame(width: 28, height: 28)
-                                    .foregroundStyle(
-                                        Color("InterfaceFillGraysGray6")
-                                    )
-                            }
+                            Image(systemName: "arrow.right")
+                                .frame(width: 28, height: 28)
+                                .foregroundStyle(
+                                    currentPage < 7
+                                        ? Color("BrandZinerPrimary100")
+                                        : Color("InterfaceFillGraysGray6")
+                                )
                         }
                         .background(
-                            if currentPage < 7 {
-                                Circle()
-                                    .fill(Color("BrandZinerPrimary15"))
-                            } else {
-                                Circle()
-                                    .fill(Color("InterfaceFillGraysGray6"))
-                            }
-
+                            Circle()
+                                .fill(
+                                    currentPage < 7
+                                        ? Color("BrandZinerPrimary15")
+                                        : Color("InterfaceFillGraysGray6")
+                                )
                         )
                         .disabled(currentPage == 7)
                         .accessibilityIdentifier("pageNextButton")
