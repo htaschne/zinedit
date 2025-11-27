@@ -29,10 +29,11 @@ struct TextEditSheet: View {
                 if case .text(let model) = layer.content {
                     Section("Text") {
                         TextField("Text", text: $text, axis: .vertical)
+                            .font(.callout)
                             .onAppear {
                                 text = model.text
                                 fontSize = Double(model.fontSize)
-                                isBold = model.weight == .bold
+                                //                                isBold = model.weight == .bold
                                 color = model.color
                             }
                             .listRowInsets(
@@ -148,7 +149,7 @@ struct TextEditSheet: View {
                             )
                         )
                         .foregroundStyle(.primary)
-                        
+
                         HStack {
                             Text("Variations")
                                 .font(.body)
@@ -351,7 +352,10 @@ struct StepperPill: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 0) {
-            Button(action: { fontSize -= 1 }) {
+            Button(action: {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                fontSize -= 1
+            }) {
                 Image(systemName: "minus")
                     .font(.headline)
 
@@ -359,7 +363,10 @@ struct StepperPill: View {
             .frame(width: 46)
             .frame(height: 32)
 
-            Button(action: { fontSize += 1 }) {
+            Button(action: {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                fontSize += 1
+            }) {
                 Image(systemName: "plus")
                     .font(.headline)
             }
@@ -384,15 +391,11 @@ struct FontStylePill: View {
                 isBold.toggle()
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
             }) {
-                if isBold {
-                    Image(systemName: "bold")
-                        .font(.headline)
-                        .foregroundStyle(Color("ConesIconOnBrand"))
-                } else {
-                    Image(systemName: "bold")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                }
+                Image(systemName: "bold")
+                    .font(.headline)
+                    .foregroundStyle(
+                        isBold ? Color("ConesIconOnBrand") : .primary
+                    )
             }
             .buttonStyle(.plain)
             .frame(width: 46)
@@ -402,15 +405,13 @@ struct FontStylePill: View {
                 isItalic.toggle()
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
             }) {
-                if isItalic {
-                    Image(systemName: "italic")
-                        .font(.body)
-                        .foregroundStyle(Color("ConesIconOnBrand"))
-                } else {
-                    Image(systemName: "italic")
-                        .font(.body)
-                        .foregroundStyle(.primary)
-                }
+
+                Image(systemName: "italic")
+                    .font(.body)
+                    .foregroundStyle(
+                        isItalic ? Color("ConesIconOnBrand") : .primary
+                    )
+
             }
             .buttonStyle(.plain)
             .frame(width: 46)
@@ -422,7 +423,7 @@ struct FontStylePill: View {
                 .fill(Color("BrandZinerPrimary15"))
         )
     }
-    
+
 }
 
 #Preview {
