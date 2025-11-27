@@ -41,6 +41,7 @@ public struct EditorCanvasView: View {
     @State private var selectedTextBinding: Binding<EditorLayer>?  // used to edit text
     @State private var showNoiseSheet = false
     @State private var selectedImageBinding: Binding<EditorLayer>?
+    @State private var isLoadingPhoto: Bool = false
 
     // Pagination: always 8 pages
     @State private var pages: [[EditorLayer]] = Array(repeating: [], count: 8)
@@ -149,6 +150,16 @@ public struct EditorCanvasView: View {
                                         }
                                     }
                                 }
+                            }
+                            if isLoadingPhoto {
+                                ZStack {
+                                    Rectangle()
+                                        .fill(.ultraThinMaterial)
+                                    ProgressView()
+                                        .controlSize(.large)
+                                        .accessibilityIdentifier("photoLoadingSpinner")
+                                }
+                                .accessibilityIdentifier("photoLoadingOverlay")
                             }
                         }
                         // Exact canvas size & centered position with margins respected
@@ -437,6 +448,7 @@ public struct EditorCanvasView: View {
                 .presentationDragIndicator(.visible)
             }
             .onChange(of: model.photoSelection) { _, _ in
+                isLoadingPhoto = true
                 Task { @MainActor in
                     await model.loadSelectedPhoto()
                     if let id = model.selection,
@@ -444,6 +456,7 @@ public struct EditorCanvasView: View {
                     {
                         binding.position.wrappedValue = .zero
                     }
+                    isLoadingPhoto = false
                 }
             }
             // keep EditorModel and host binding in sync
