@@ -168,30 +168,37 @@ struct TextEditSheet: View {
                             )
                         )
 
-                        ColorPicker(selection: $color, supportsOpacity: true) {
-                            HStack {
-                                Text("Color")
-                                    .font(.body)
-                                    .foregroundStyle(.primary)
-                                Spacer()
-                                ZStack {
-                                    Circle()
-                                        .fill(
-                                            AngularGradient(
-                                                gradient: Gradient(colors: [
-                                                    .red, .orange, .yellow,
-                                                    .green, .cyan, .blue,
-                                                    .purple, .red,
-                                                ]),
-                                                center: .center
-                                            )
+                        HStack {
+                            Text("Color")
+                                .font(.body)
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        AngularGradient(
+                                            gradient: Gradient(colors: [
+                                                .red, .orange, .yellow,
+                                                .green, .cyan, .blue,
+                                                .purple, .red,
+                                            ]),
+                                            center: .center
                                         )
-                                    Circle()
-                                        .stroke(Color(.separator), lineWidth: 1)
-                                }
+                                    )
+                                Circle()
+                                    .stroke(Color(.separator), lineWidth: 1)
+                                // Invisible ColorPicker overlay to capture taps while showing our custom swatch
+                                ColorPicker(
+                                    "",
+                                    selection: $color,
+                                    supportsOpacity: true
+                                )
+                                .labelsHidden()
                                 .frame(width: 24, height: 24)
-                                .accessibilityIdentifier("colorSwatchIcon")
+                                .opacity(0.02)  // remain tappable but not visible
                             }
+                            .frame(width: 24, height: 24)
+                            .accessibilityIdentifier("colorSwatchIcon")
                         }
                         .listRowInsets(
                             EdgeInsets(
