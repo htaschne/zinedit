@@ -228,7 +228,7 @@ public struct EditorCanvasView: View {
                         }
                         .background(
                             Circle()
-                                .fill(.fill.tertiary)
+                                .fill(Color("BrandZinerPrimary15"))
 
                         )
                         .disabled(currentPage == 0)
@@ -266,7 +266,7 @@ public struct EditorCanvasView: View {
                         }
                         .background(
                             Circle()
-                                .fill(.fill.tertiary)
+                                .fill(Color("BrandZinerPrimary15"))
                         )
                         .disabled(currentPage == 7)
                         .accessibilityIdentifier("pageNextButton")
