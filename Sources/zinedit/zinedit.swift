@@ -355,8 +355,8 @@ public struct EditorCanvasView: View {
                         showLayersSheet = true
                     } label: {
                         Label("Layers", systemImage: "square.3.layers.3d")
-                            .disabled(!model.canLayer)
                     }
+                    .disabled(!model.canLayer)
                     .accessibilityIdentifier("layersButton")
 
                     // Keep Trash visible when there is a selection
