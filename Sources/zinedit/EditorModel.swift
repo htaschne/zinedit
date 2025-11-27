@@ -28,6 +28,7 @@ final class EditorModel: ObservableObject {
 
     var canUndo: Bool { !history.isEmpty }
     var canRedo: Bool { !future.isEmpty }
+    var canLayer: Bool { !layers.isEmpty }
 
     func select(_ id: UUID) {
         selection = id

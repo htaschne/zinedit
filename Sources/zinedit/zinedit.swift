@@ -355,7 +355,7 @@ public struct EditorCanvasView: View {
                         showLayersSheet = true
                     } label: {
                         Label("Layers", systemImage: "square.3.layers.3d")
-                            .disabled(self.layers.isEmpty)
+                            .disabled(!model.canLayer)
                     }
                     .accessibilityIdentifier("layersButton")
 
@@ -829,7 +829,6 @@ struct LayersSheet: View {
             }
             .accessibilityIdentifier("layersList")
             .environment(\.editMode, .constant(.active))
-            .navigationTitle("Layers")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
