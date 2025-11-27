@@ -380,7 +380,10 @@ struct FontStylePill: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 0) {
-            Button(action: { isBold.toggle() }) {
+            Button(action: {
+                isBold.toggle()
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }) {
                 if isBold {
                     Image(systemName: "bold")
                         .font(.headline)
@@ -390,13 +393,15 @@ struct FontStylePill: View {
                         .font(.headline)
                         .foregroundStyle(.primary)
                 }
-
             }
             .buttonStyle(.plain)
             .frame(width: 46)
             .frame(height: 32)
 
-            Button(action: { isItalic.toggle() }) {
+            Button(action: {
+                isItalic.toggle()
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }) {
                 if isItalic {
                     Image(systemName: "italic")
                         .font(.body)
@@ -421,5 +426,5 @@ struct FontStylePill: View {
 }
 
 #Preview {
-    FontStylePill(isBold: .constant(true), isItalic: .constant(false))
+    FontStylePill(isBold: .constant(false), isItalic: .constant(false))
 }
