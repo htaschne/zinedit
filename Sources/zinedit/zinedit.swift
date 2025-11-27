@@ -219,10 +219,6 @@ public struct EditorCanvasView: View {
                                     .foregroundStyle(
                                         Color("BrandZinerPrimary100")
                                     )
-                            } else {
-                                Image(systemName: "arrow.left")
-                                    .frame(width: 28, height: 28)
-                                    .foregroundStyle(.gray)
                             }
 
                         }
@@ -258,10 +254,6 @@ public struct EditorCanvasView: View {
                                     .foregroundStyle(
                                         Color("BrandZinerPrimary100")
                                     )
-                            } else {
-                                Image(systemName: "arrow.right")
-                                    .frame(width: 28, height: 28)
-                                    .foregroundStyle(.gray)
                             }
                         }
                         .background(
