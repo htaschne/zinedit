@@ -702,7 +702,7 @@ public struct TextModel: Equatable, Codable {
         text: String,
         fontSize: CGFloat = 28,
         color: Color = .primary,
-        weight: Font.Weight = .bold,
+        weight: Font.Weight = .regular,
         fontName: String? = nil,
         isItalic: Bool = false
     ) {

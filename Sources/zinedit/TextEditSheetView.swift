@@ -33,7 +33,6 @@ struct TextEditSheet: View {
                             .onAppear {
                                 text = model.text
                                 fontSize = Double(model.fontSize)
-                                //                                isBold = model.weight == .bold
                                 color = model.color
                             }
                             .listRowInsets(
