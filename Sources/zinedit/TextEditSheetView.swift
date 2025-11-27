@@ -185,19 +185,20 @@ struct TextEditSheet: View {
                                             center: .center
                                         )
                                     )
-                                Circle()
-                                    .stroke(Color(.separator), lineWidth: 1)
-                                // Invisible ColorPicker overlay to capture taps while showing our custom swatch
-                                ColorPicker(
-                                    "",
-                                    selection: $color,
-                                    supportsOpacity: true
-                                )
-                                .labelsHidden()
-                                .frame(width: 24, height: 24)
-                                .opacity(0.02)  // remain tappable but not visible
+                                    .frame(width: 24, height: 24)
+                                    .overlay(
+                                        Circle().stroke(Color(.separator), lineWidth: 1)
+                                    )
                             }
-                            .frame(width: 24, height: 24)
+                            .frame(width: 44, height: 44)               // 44pt hit target
+                            .contentShape(Circle())
+                            .overlay(
+                                ColorPicker("", selection: $color, supportsOpacity: true)
+                                    .labelsHidden()
+                                    .frame(width: 44, height: 44)
+                                    .opacity(0.02)                       // invisible but tappable
+                                    .allowsHitTesting(true)
+                            )
                             .accessibilityIdentifier("colorSwatchIcon")
                         }
                         .listRowInsets(
@@ -384,7 +385,7 @@ struct StepperPill: View {
         HStack(alignment: .center, spacing: 0) {
             Button(action: {
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                fontSize -= 1
+                fontSize = max(1, fontSize - 1)
             }) {
                 Image(systemName: "minus")
                     .font(.headline)
@@ -395,7 +396,7 @@ struct StepperPill: View {
 
             Button(action: {
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                fontSize += 1
+                fontSize = min(128, fontSize + 1)
             }) {
                 Image(systemName: "plus")
                     .font(.headline)
