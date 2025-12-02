@@ -991,7 +991,6 @@ struct LayerRowThumb: View {
                     .accessibilityIdentifier("drawingCanvas")
                 }
                 .accessibilityIdentifier("drawingEditSheet")
-                .navigationTitle("Edit Drawing")
                 .toolbar(content: {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Apply") {
@@ -1011,10 +1010,9 @@ struct LayerRowThumb: View {
                         }
                         .accessibilityIdentifier("cancelDrawingButton")
                     }
-                })
-                .safeAreaInset(edge: .bottom) {
-                    HStack {
-                        // LEFT: Brushes
+
+                    // Bottom Bar — LEFT: brushes
+                    ToolbarItemGroup(placement: .bottomBar) {
                         HStack(spacing: 12) {
                             Button {
                                 selectBrush(idxFine)
@@ -1046,13 +1044,15 @@ struct LayerRowThumb: View {
                             .tint((selectedBrushIndex == idxSketch && !erasing) ? .accentColor : .secondary)
                             .accessibilityIdentifier("brushSketchButton")
                         }
+                    }
 
-                        Spacer(minLength: 16)
-
-                        // RIGHT: Color, Width, Eraser
+                    // Bottom Bar — RIGHT: color, width, eraser
+                    ToolbarItemGroup(placement: .bottomBar) {
                         HStack(spacing: 12) {
-                            // Color (paintpalette) – shows current color; overlayed ColorPicker for tap
-                            Button { Haptics.medium() } label: {
+                            // Color picker (paintpalette) with overlay
+                            Button {
+                                Haptics.medium()
+                            } label: {
                                 Image(systemName: "paintpalette")
                                     .padding(.horizontal, 10)
                                     .foregroundStyle(brushColor)
@@ -1068,7 +1068,7 @@ struct LayerRowThumb: View {
                                     .simultaneousGesture(TapGesture().onEnded { Haptics.medium() })
                             )
 
-                            // Width (scribble.variable) – popover with a slider
+                            // Width popover (scribble.variable)
                             Button {
                                 Haptics.medium()
                                 showWidthPopover.toggle()
@@ -1107,11 +1107,7 @@ struct LayerRowThumb: View {
                             .accessibilityIdentifier("eraserButton")
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
-                    .overlay(Divider(), alignment: .top)
-                }
+                })
                 .onAppear {
                     if case .drawing(let m) = layer.content { self.data = m.data }
                     if config.brushes.indices.contains(selectedBrushIndex) {
