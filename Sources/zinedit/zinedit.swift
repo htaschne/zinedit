@@ -1079,7 +1079,7 @@ struct LayerRowThumb: View {
                                 .contentShape(Rectangle())
                         }
                         .accessibilityIdentifier("brushWidthButton")
-                        .popover(isPresented: $showWidthPopover, attachmentAnchor: .point(.center), arrowEdge: .bottom) {
+                        .popover(isPresented: $showWidthPopover, /*attachmentAnchor: .point(.center),*/ arrowEdge: .bottom) {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
                                     Text("Stroke").font(.headline)
