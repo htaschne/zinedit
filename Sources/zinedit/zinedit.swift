@@ -964,6 +964,9 @@ struct LayerRowThumb: View {
         @State private var data: Data = Data()
         @State private var selectedBrushIndex: Int = 0
         @State private var erasing: Bool = false
+        @State private var brushColor: Color = .black
+        @State private var brushWidth: CGFloat = 3
+        @State private var showWidthPopover: Bool = false
         var onApply: (() -> Void)? = nil
 
         private var baseSize: CGSize {
@@ -1046,17 +1049,63 @@ struct LayerRowThumb: View {
 
                         Spacer(minLength: 16)
 
-                        // RIGHT: Eraser
-                        Button {
-                            Haptics.medium()
-                            erasing.toggle()
-                        } label: {
-                            Image(systemName: "eraser")
-                                .padding(.horizontal, 10)
+                        // RIGHT: Color, Width, Eraser
+                        HStack(spacing: 12) {
+                            // Color (paintpalette) – shows current color; overlayed ColorPicker for tap
+                            Button { Haptics.medium() } label: {
+                                Image(systemName: "paintpalette")
+                                    .padding(.horizontal, 10)
+                                    .foregroundStyle(brushColor)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("brushColorButton")
+                            .overlay(
+                                ColorPicker("", selection: $brushColor, supportsOpacity: true)
+                                    .labelsHidden()
+                                    .frame(width: 44, height: 44)
+                                    .opacity(0.02)
+                                    .allowsHitTesting(true)
+                                    .simultaneousGesture(TapGesture().onEnded { Haptics.medium() })
+                            )
+
+                            // Width (scribble.variable) – popover with a slider
+                            Button {
+                                Haptics.medium()
+                                showWidthPopover.toggle()
+                            } label: {
+                                Image(systemName: "scribble.variable")
+                                    .padding(.horizontal, 10)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("brushWidthButton")
+                            .popover(isPresented: $showWidthPopover, attachmentAnchor: .point(.top), arrowEdge: .bottom) {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    HStack {
+                                        Text("Stroke").font(.headline)
+                                        Spacer()
+                                        Text("\(Int(brushWidth)) pt")
+                                            .monospacedDigit()
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Slider(value: $brushWidth, in: 1...40, step: 1)
+                                        .accessibilityIdentifier("brushWidthSlider")
+                                }
+                                .padding(16)
+                                .frame(width: 280)
+                            }
+
+                            // Eraser
+                            Button {
+                                Haptics.medium()
+                                erasing.toggle()
+                            } label: {
+                                Image(systemName: "eraser")
+                                    .padding(.horizontal, 10)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(erasing ? .accentColor : .secondary)
+                            .accessibilityIdentifier("eraserButton")
                         }
-                        .buttonStyle(.bordered)
-                        .tint(erasing ? .accentColor : .secondary)
-                        .accessibilityIdentifier("eraserButton")
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
@@ -1064,8 +1113,21 @@ struct LayerRowThumb: View {
                     .overlay(Divider(), alignment: .top)
                 }
                 .onAppear {
-                    if case .drawing(let m) = layer.content {
-                        self.data = m.data
+                    if case .drawing(let m) = layer.content { self.data = m.data }
+                    if config.brushes.indices.contains(selectedBrushIndex) {
+                        let base = config.brushes[selectedBrushIndex]
+                        brushColor = base.color
+                        brushWidth = base.width
+                    } else if let base = config.brushes.first {
+                        brushColor = base.color
+                        brushWidth = base.width
+                    }
+                }
+                .onChange(of: selectedBrushIndex) { _, _ in
+                    if config.brushes.indices.contains(selectedBrushIndex) {
+                        let base = config.brushes[selectedBrushIndex]
+                        brushColor = base.color
+                        brushWidth = base.width
                     }
                 }
             }
@@ -1073,10 +1135,10 @@ struct LayerRowThumb: View {
 
         private var safeSelectedBrush: EditorBrush {
             if config.brushes.indices.contains(selectedBrushIndex) {
-                return config.brushes[selectedBrushIndex]
+                let base = config.brushes[selectedBrushIndex]
+                return EditorBrush(kind: base.kind, name: base.name, color: brushColor, width: brushWidth)
             }
-            return config.brushes.first
-                ?? EditorBrush(kind: .pen, name: "Pen", color: .black, width: 3)
+            return EditorBrush(kind: .pen, name: "Pen", color: brushColor, width: brushWidth)
         }
 
         // MARK: - Brush helpers (by name with sensible fallbacks)
@@ -1379,3 +1441,4 @@ extension Font.Weight {
         }
     }
 }
+    
