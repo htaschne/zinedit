@@ -974,44 +974,6 @@ struct LayerRowThumb: View {
         var body: some View {
             NavigationStack {
                 VStack(spacing: 12) {
-                    // Brush/Eraser controls
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(
-                                Array(config.brushes.enumerated()),
-                                id: \.offset
-                            ) { idx, brush in
-                                Button {
-                                    #if canImport(UIKit)
-                                        Haptics.medium()
-                                    #endif
-                                    selectedBrushIndex = idx
-                                    erasing = false
-                                } label: {
-                                    Text(brush.name)
-                                        .padding(.horizontal, 10)
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .tint(
-                                    (selectedBrushIndex == idx && !erasing)
-                                        ? .accentColor : .secondary
-                                )
-                                .accessibilityIdentifier("brushButton-\(idx)")
-                            }
-                            Button {
-                                Haptics.medium()
-                                erasing.toggle()
-                            } label: {
-                                Image(systemName: "eraser")
-                                    .padding(.horizontal, 10)
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(erasing ? .accentColor : .secondary)
-                            .accessibilityIdentifier("eraserButton")
-                        }
-                        .padding(.horizontal, 12)
-                    }
-
                     // Canvas
                     PencilCanvasView(
                         data: $data,
@@ -1028,6 +990,56 @@ struct LayerRowThumb: View {
                 .accessibilityIdentifier("drawingEditSheet")
                 .navigationTitle("Edit Drawing")
                 .toolbar(content: {
+                    ToolbarItem(placement: .bottomBar) {
+                        HStack {
+                            // Left tools: Fine (pencil), Marker (paintbrush.pointed), Sketch (paintbrush)
+                            HStack(spacing: 12) {
+                                Button {
+                                    selectBrush(idxFine)
+                                } label: {
+                                    Image(systemName: "pencil")
+                                        .padding(.horizontal, 10)
+                                }
+                                .buttonStyle(.bordered)
+                                .tint((selectedBrushIndex == idxFine && !erasing) ? .accentColor : .secondary)
+                                .accessibilityIdentifier("brushFineButton")
+
+                                Button {
+                                    selectBrush(idxMarker)
+                                } label: {
+                                    Image(systemName: "paintbrush.pointed")
+                                        .padding(.horizontal, 10)
+                                }
+                                .buttonStyle(.bordered)
+                                .tint((selectedBrushIndex == idxMarker && !erasing) ? .accentColor : .secondary)
+                                .accessibilityIdentifier("brushMarkerButton")
+
+                                Button {
+                                    selectBrush(idxSketch)
+                                } label: {
+                                    Image(systemName: "paintbrush")
+                                        .padding(.horizontal, 10)
+                                }
+                                .buttonStyle(.bordered)
+                                .tint((selectedBrushIndex == idxSketch && !erasing) ? .accentColor : .secondary)
+                                .accessibilityIdentifier("brushSketchButton")
+                            }
+
+                            Spacer()
+
+                            // Right tool: Eraser
+                            Button {
+                                Haptics.medium()
+                                erasing.toggle()
+                            } label: {
+                                Image(systemName: "eraser")
+                                    .padding(.horizontal, 10)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(erasing ? .accentColor : .secondary)
+                            .accessibilityIdentifier("eraserButton")
+                        }
+                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Apply") {
                             Haptics.medium()
@@ -1061,6 +1073,28 @@ struct LayerRowThumb: View {
             }
             return config.brushes.first
                 ?? EditorBrush(kind: .pen, name: "Pen", color: .black, width: 3)
+        }
+
+        // MARK: - Brush helpers (by name with sensible fallbacks)
+        private var idxFine: Int {
+            indexForBrush(named: "fine") ?? 0
+        }
+        private var idxMarker: Int {
+            if let i = indexForBrush(named: "marker") { return i }
+            return min(1, max(0, config.brushes.count - 1))
+        }
+        private var idxSketch: Int {
+            if let i = indexForBrush(named: "sketch") { return i }
+            return min(2, max(0, config.brushes.count - 1))
+        }
+        private func indexForBrush(named name: String) -> Int? {
+            config.brushes.firstIndex { $0.name.lowercased() == name.lowercased() }
+        }
+        private func selectBrush(_ idx: Int) {
+            guard config.brushes.indices.contains(idx) else { return }
+            Haptics.medium()
+            selectedBrushIndex = idx
+            erasing = false
         }
     }
 
