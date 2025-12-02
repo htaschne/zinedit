@@ -1086,10 +1086,11 @@ struct LayerRowThumb: View {
                                     Spacer()
                                     Text("\(Int(brushWidth)) pt")
                                         .monospacedDigit()
-                                        .foregroundStyle(Color("BrandZinerPrimary100"))
+                                        .foregroundStyle(.secondary)
                                 }
                                 Slider(value: $brushWidth, in: 1...40, step: 1)
                                     .accessibilityIdentifier("brushWidthSlider")
+                                    .foregroundStyle(Color("BrandZinerPrimary100"))
                             }
                             .padding(16)
                             .frame(width: 280)
