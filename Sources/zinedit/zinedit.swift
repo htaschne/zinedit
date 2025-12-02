@@ -1093,7 +1093,7 @@ struct LayerRowThumb: View {
                                     .accentColor(Color("BrandZinerPrimary100"))
                             }
                             .padding(16)
-                            .frame(width: 280, height: 200)
+                            .frame(maxHeight: 200)
                         }
 
                         // Eraser (kept far right)
