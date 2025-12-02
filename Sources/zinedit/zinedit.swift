@@ -990,56 +990,6 @@ struct LayerRowThumb: View {
                 .accessibilityIdentifier("drawingEditSheet")
                 .navigationTitle("Edit Drawing")
                 .toolbar(content: {
-                    ToolbarItem(placement: .bottomBar) {
-                        HStack {
-                            // Left tools: Fine (pencil), Marker (paintbrush.pointed), Sketch (paintbrush)
-                            HStack(spacing: 12) {
-                                Button {
-                                    selectBrush(idxFine)
-                                } label: {
-                                    Image(systemName: "pencil")
-                                        .padding(.horizontal, 10)
-                                }
-                                .buttonStyle(.bordered)
-                                .tint((selectedBrushIndex == idxFine && !erasing) ? .accentColor : .secondary)
-                                .accessibilityIdentifier("brushFineButton")
-
-                                Button {
-                                    selectBrush(idxMarker)
-                                } label: {
-                                    Image(systemName: "paintbrush.pointed")
-                                        .padding(.horizontal, 10)
-                                }
-                                .buttonStyle(.bordered)
-                                .tint((selectedBrushIndex == idxMarker && !erasing) ? .accentColor : .secondary)
-                                .accessibilityIdentifier("brushMarkerButton")
-
-                                Button {
-                                    selectBrush(idxSketch)
-                                } label: {
-                                    Image(systemName: "paintbrush")
-                                        .padding(.horizontal, 10)
-                                }
-                                .buttonStyle(.bordered)
-                                .tint((selectedBrushIndex == idxSketch && !erasing) ? .accentColor : .secondary)
-                                .accessibilityIdentifier("brushSketchButton")
-                            }
-
-                            Spacer()
-
-                            // Right tool: Eraser
-                            Button {
-                                Haptics.medium()
-                                erasing.toggle()
-                            } label: {
-                                Image(systemName: "eraser")
-                                    .padding(.horizontal, 10)
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(erasing ? .accentColor : .secondary)
-                            .accessibilityIdentifier("eraserButton")
-                        }
-                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Apply") {
                             Haptics.medium()
@@ -1059,6 +1009,60 @@ struct LayerRowThumb: View {
                         .accessibilityIdentifier("cancelDrawingButton")
                     }
                 })
+                .safeAreaInset(edge: .bottom) {
+                    HStack {
+                        // LEFT: Brushes
+                        HStack(spacing: 12) {
+                            Button {
+                                selectBrush(idxFine)
+                            } label: {
+                                Image(systemName: "pencil")
+                                    .padding(.horizontal, 10)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint((selectedBrushIndex == idxFine && !erasing) ? .accentColor : .secondary)
+                            .accessibilityIdentifier("brushFineButton")
+
+                            Button {
+                                selectBrush(idxMarker)
+                            } label: {
+                                Image(systemName: "paintbrush.pointed")
+                                    .padding(.horizontal, 10)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint((selectedBrushIndex == idxMarker && !erasing) ? .accentColor : .secondary)
+                            .accessibilityIdentifier("brushMarkerButton")
+
+                            Button {
+                                selectBrush(idxSketch)
+                            } label: {
+                                Image(systemName: "paintbrush")
+                                    .padding(.horizontal, 10)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint((selectedBrushIndex == idxSketch && !erasing) ? .accentColor : .secondary)
+                            .accessibilityIdentifier("brushSketchButton")
+                        }
+
+                        Spacer(minLength: 16)
+
+                        // RIGHT: Eraser
+                        Button {
+                            Haptics.medium()
+                            erasing.toggle()
+                        } label: {
+                            Image(systemName: "eraser")
+                                .padding(.horizontal, 10)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(erasing ? .accentColor : .secondary)
+                        .accessibilityIdentifier("eraserButton")
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.ultraThinMaterial)
+                    .overlay(Divider(), alignment: .top)
+                }
                 .onAppear {
                     if case .drawing(let m) = layer.content {
                         self.data = m.data
