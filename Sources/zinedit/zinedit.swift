@@ -1093,8 +1093,7 @@ struct LayerRowThumb: View {
                                     .accentColor(Color("BrandZinerPrimary100"))
                             }
                             .padding(16)
-                            .presentationDetents([.height(200)])
-//                            .presentationDragIndicator(.hidden)
+                            .presentationDetents([.height(100)])
                             .presentationCompactAdaptation(.sheet)
                         }
 
