@@ -1088,6 +1088,7 @@ struct LayerRowThumb: View {
                                         .monospacedDigit()
                                         .foregroundStyle(.secondary)
                                 }
+                                .padding()
                                 Slider(value: $brushWidth, in: 1...40, step: 1)
                                     .accessibilityIdentifier("brushWidthSlider")
                                     .accentColor(Color("BrandZinerPrimary100"))
