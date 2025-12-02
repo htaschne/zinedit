@@ -1079,7 +1079,7 @@ struct LayerRowThumb: View {
                                 .contentShape(Rectangle())
                         }
                         .accessibilityIdentifier("brushWidthButton")
-                        .popover(isPresented: $showWidthPopover, /*attachmentAnchor: .point(.center),*/ arrowEdge: .bottom) {
+                        .popover(isPresented: $showWidthPopover, attachmentAnchor: .point(.center), arrowEdge: .bottom) {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
                                     Text("Stroke").font(.headline)
@@ -1093,7 +1093,9 @@ struct LayerRowThumb: View {
                                     .accentColor(Color("BrandZinerPrimary100"))
                             }
                             .padding(16)
-                            .frame(maxHeight: 200)
+                            .presentationDetents([.height(200)])
+//                            .presentationDragIndicator(.hidden)
+                            .presentationCompactAdaptation(.sheet)
                         }
 
                         // Eraser (kept far right)
