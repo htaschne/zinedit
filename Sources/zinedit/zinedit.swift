@@ -1090,10 +1090,10 @@ struct LayerRowThumb: View {
                                 }
                                 Slider(value: $brushWidth, in: 1...40, step: 1)
                                     .accessibilityIdentifier("brushWidthSlider")
-                                    .foregroundStyle(Color("BrandZinerPrimary100"))
+                                    .accentColor(Color("BrandZinerPrimary100"))
                             }
                             .padding(16)
-                            .frame(width: 280)
+                            .frame(width: 280, height: 200)
                         }
 
                         // Eraser (kept far right)
