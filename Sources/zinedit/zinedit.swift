@@ -1079,14 +1079,14 @@ struct LayerRowThumb: View {
                                 .contentShape(Rectangle())
                         }
                         .accessibilityIdentifier("brushWidthButton")
-                        .popover(isPresented: $showWidthPopover, attachmentAnchor: .point(.top), arrowEdge: .bottom) {
+                        .popover(isPresented: $showWidthPopover, attachmentAnchor: .point(.center), arrowEdge: .bottom) {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
                                     Text("Stroke").font(.headline)
                                     Spacer()
                                     Text("\(Int(brushWidth)) pt")
                                         .monospacedDigit()
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(Color("BrandZinerPrimary100"))
                                 }
                                 Slider(value: $brushWidth, in: 1...40, step: 1)
                                     .accessibilityIdentifier("brushWidthSlider")
