@@ -1011,135 +1011,103 @@ struct LayerRowThumb: View {
                         .accessibilityIdentifier("cancelDrawingButton")
                     }
 
-                    // Removed bottom bar toolbars; replaced with safeAreaInset below.
-                })
-                // New bottom safe area inset with left/right "liquid glass" capsules
-                .safeAreaInset(edge: .bottom) {
-                    HStack(alignment: .center) {
-                        // LEFT CAPSULE: three pencils close together
-                        HStack(spacing: 8) {
-                            Button {
-                                selectBrush(idxFine)
-                            } label: {
-                                Image(systemName: "pencil")
-                                    .font(.system(size: 18))
-                                    .frame(width: 36, height: 36)
-                                    .contentShape(Rectangle())
-                                    .foregroundStyle((selectedBrushIndex == idxFine && !erasing) ? Color("BrandZinerPrimary100") : .secondary)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("brushFineButton")
-
-                            Button {
-                                selectBrush(idxMarker)
-                            } label: {
-                                Image(systemName: "paintbrush.pointed")
-                                    .font(.system(size: 18))
-                                    .frame(width: 36, height: 36)
-                                    .contentShape(Rectangle())
-                                    .foregroundStyle((selectedBrushIndex == idxMarker && !erasing) ? Color("BrandZinerPrimary100") : .secondary)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("brushMarkerButton")
-
-                            Button {
-                                selectBrush(idxSketch)
-                            } label: {
-                                Image(systemName: "paintbrush")
-                                    .font(.system(size: 18))
-                                    .frame(width: 36, height: 36)
-                                    .contentShape(Rectangle())
-                                    .foregroundStyle((selectedBrushIndex == idxSketch && !erasing) ? Color("BrandZinerPrimary100") : .secondary)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("brushSketchButton")
+                    // Bottom toolbar — mimic EditorCanvasView: 3 left, Spacer, 3 right
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        // LEFT: three brushes
+                        Button {
+                            selectBrush(idxFine)
+                        } label: {
+                            Image(systemName: "pencil")
+                                .frame(width: 36, height: 36)
+                                .contentShape(Rectangle())
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .overlay(
-                            Capsule().stroke(Color(.separator), lineWidth: 1)
-                        )
+                        .foregroundStyle((selectedBrushIndex == idxFine && !erasing) ? Color("BrandZinerPrimary100") : .secondary)
+                        .accessibilityIdentifier("brushFineButton")
 
-                        Spacer(minLength: 16)
+                        Button {
+                            selectBrush(idxMarker)
+                        } label: {
+                            Image(systemName: "paintbrush.pointed")
+                                .frame(width: 36, height: 36)
+                                .contentShape(Rectangle())
+                        }
+                        .foregroundStyle((selectedBrushIndex == idxMarker && !erasing) ? Color("BrandZinerPrimary100") : .secondary)
+                        .accessibilityIdentifier("brushMarkerButton")
 
-                        // RIGHT CAPSULE: color picker, width slider, eraser
-                        HStack(spacing: 8) {
-                            // Color (paintpalette) — shows current color
+                        Button {
+                            selectBrush(idxSketch)
+                        } label: {
+                            Image(systemName: "paintbrush")
+                                .frame(width: 36, height: 36)
+                                .contentShape(Rectangle())
+                        }
+                        .foregroundStyle((selectedBrushIndex == idxSketch && !erasing) ? Color("BrandZinerPrimary100") : .secondary)
+                        .accessibilityIdentifier("brushSketchButton")
+
+                        Spacer()
+
+                        // RIGHT: color, width, eraser
+                        // Color (paintpalette) — overlay a ColorPicker to use system UI while keeping our icon
+                        ZStack {
                             Button {
                                 Haptics.medium()
                             } label: {
                                 Image(systemName: "paintpalette")
-                                    .font(.system(size: 18))
                                     .frame(width: 36, height: 36)
                                     .contentShape(Rectangle())
-                                    .foregroundStyle(brushColor)
                             }
-                            .buttonStyle(.plain)
+                            .foregroundStyle(brushColor)
                             .accessibilityIdentifier("brushColorButton")
-                            // Invisible ColorPicker overlay sized to the button
-                            .overlay(
-                                ColorPicker("", selection: $brushColor, supportsOpacity: true)
-                                    .labelsHidden()
-                                    .frame(width: 36, height: 36)
-                                    .opacity(0.02)
-                                    .allowsHitTesting(true)
-                                    .simultaneousGesture(TapGesture().onEnded { Haptics.medium() })
-                            )
 
-                            // Width (scribble.variable) opens popover with slider
-                            Button {
-                                Haptics.medium()
-                                showWidthPopover.toggle()
-                            } label: {
-                                Image(systemName: "scribble.variable")
-                                    .font(.system(size: 18))
-                                    .frame(width: 36, height: 36)
-                                    .contentShape(Rectangle())
-                                    .foregroundStyle(.secondary)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("brushWidthButton")
-                            .popover(isPresented: $showWidthPopover, attachmentAnchor: .point(.top), arrowEdge: .bottom) {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    HStack {
-                                        Text("Stroke").font(.headline)
-                                        Spacer()
-                                        Text("\(Int(brushWidth)) pt")
-                                            .monospacedDigit()
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    Slider(value: $brushWidth, in: 1...40, step: 1)
-                                        .accessibilityIdentifier("brushWidthSlider")
-                                }
-                                .padding(16)
-                                .frame(width: 280)
-                            }
-
-                            // Eraser (toggle)
-                            Button {
-                                Haptics.medium()
-                                erasing.toggle()
-                            } label: {
-                                Image(systemName: "eraser")
-                                    .font(.system(size: 18))
-                                    .frame(width: 36, height: 36)
-                                    .contentShape(Rectangle())
-                                    .foregroundStyle(erasing ? Color("BrandZinerPrimary100") : .secondary)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("eraserButton")
+                            ColorPicker("", selection: $brushColor, supportsOpacity: true)
+                                .labelsHidden()
+                                .frame(width: 36, height: 36)
+                                .opacity(0.02)
+                                .allowsHitTesting(true)
+                                .simultaneousGesture(
+                                    TapGesture().onEnded { Haptics.medium() }
+                                )
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .overlay(
-                            Capsule().stroke(Color(.separator), lineWidth: 1)
-                        )
+
+                        // Width (scribble.variable) — popover slider
+                        Button {
+                            Haptics.medium()
+                            showWidthPopover.toggle()
+                        } label: {
+                            Image(systemName: "scribble.variable")
+                                .frame(width: 36, height: 36)
+                                .contentShape(Rectangle())
+                        }
+                        .accessibilityIdentifier("brushWidthButton")
+                        .popover(isPresented: $showWidthPopover, attachmentAnchor: .point(.top), arrowEdge: .bottom) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("Stroke").font(.headline)
+                                    Spacer()
+                                    Text("\(Int(brushWidth)) pt")
+                                        .monospacedDigit()
+                                        .foregroundStyle(.secondary)
+                                }
+                                Slider(value: $brushWidth, in: 1...40, step: 1)
+                                    .accessibilityIdentifier("brushWidthSlider")
+                            }
+                            .padding(16)
+                            .frame(width: 280)
+                        }
+
+                        // Eraser (kept far right)
+                        Button {
+                            Haptics.medium()
+                            erasing.toggle()
+                        } label: {
+                            Image(systemName: "eraser")
+                                .frame(width: 36, height: 36)
+                                .contentShape(Rectangle())
+                        }
+                        .foregroundStyle(erasing ? Color("BrandZinerPrimary100") : .secondary)
+                        .accessibilityIdentifier("eraserButton")
                     }
-                    .padding(.horizontal, 16)  // respect horizontal safe area
-                    .padding(.bottom, 8)
-                }
+                })
                 .onAppear {
                     if case .drawing(let m) = layer.content { self.data = m.data }
                     if config.brushes.indices.contains(selectedBrushIndex) {
