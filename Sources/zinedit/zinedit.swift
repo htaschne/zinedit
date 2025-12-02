@@ -1018,7 +1018,7 @@ struct LayerRowThumb: View {
                             selectBrush(idxFine)
                         } label: {
                             Image(systemName: "pencil")
-                                .frame(width: 36, height: 36)
+                                .frame(width: 24, height: 24)
                                 .contentShape(Rectangle())
                         }
                         .foregroundStyle((selectedBrushIndex == idxFine && !erasing) ? Color("BrandZinerPrimary100") : .secondary)
@@ -1028,7 +1028,7 @@ struct LayerRowThumb: View {
                             selectBrush(idxMarker)
                         } label: {
                             Image(systemName: "paintbrush.pointed")
-                                .frame(width: 36, height: 36)
+                                .frame(width: 24, height: 24)
                                 .contentShape(Rectangle())
                         }
                         .foregroundStyle((selectedBrushIndex == idxMarker && !erasing) ? Color("BrandZinerPrimary100") : .secondary)
@@ -1038,7 +1038,7 @@ struct LayerRowThumb: View {
                             selectBrush(idxSketch)
                         } label: {
                             Image(systemName: "paintbrush")
-                                .frame(width: 36, height: 36)
+                                .frame(width: 24, height: 24)
                                 .contentShape(Rectangle())
                         }
                         .foregroundStyle((selectedBrushIndex == idxSketch && !erasing) ? Color("BrandZinerPrimary100") : .secondary)
@@ -1053,7 +1053,7 @@ struct LayerRowThumb: View {
                                 Haptics.medium()
                             } label: {
                                 Image(systemName: "paintpalette")
-                                    .frame(width: 36, height: 36)
+                                    .frame(width: 24, height: 24)
                                     .contentShape(Rectangle())
                             }
                             .foregroundStyle(brushColor)
@@ -1061,7 +1061,7 @@ struct LayerRowThumb: View {
 
                             ColorPicker("", selection: $brushColor, supportsOpacity: true)
                                 .labelsHidden()
-                                .frame(width: 36, height: 36)
+                                .frame(width: 24, height: 24)
                                 .opacity(0.02)
                                 .allowsHitTesting(true)
                                 .simultaneousGesture(
@@ -1075,7 +1075,7 @@ struct LayerRowThumb: View {
                             showWidthPopover.toggle()
                         } label: {
                             Image(systemName: "scribble.variable")
-                                .frame(width: 36, height: 36)
+                                .frame(width: 24, height: 24)
                                 .contentShape(Rectangle())
                         }
                         .accessibilityIdentifier("brushWidthButton")
@@ -1101,7 +1101,7 @@ struct LayerRowThumb: View {
                             erasing.toggle()
                         } label: {
                             Image(systemName: "eraser")
-                                .frame(width: 36, height: 36)
+                                .frame(width: 24, height: 24)
                                 .contentShape(Rectangle())
                         }
                         .foregroundStyle(erasing ? Color("BrandZinerPrimary100") : .secondary)
