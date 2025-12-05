@@ -502,6 +502,27 @@ public struct EditorCanvasView: View {
             .onChange(of: model.layers) { _, newValue in
                 pages[currentPage] = newValue
                 self.layers = newValue  // keep host in sync with the current page
+                var newImages: [UIImage] = []
+                    
+                    // 2. Iterate through all pages (the 'pages' binding holds [[EditorLayer]])
+                    for pageLayers in pages {
+                        
+                        // 3. Render each page using the specific Zine render logic
+                        // We use the config.exportSize to ensure high resolution (e.g. 1080x1920)
+                        // rather than the screen size.
+                        let image = EditorRenderer.renderImage(
+                            layers: pageLayers,
+                            size: config.exportSize
+                        )
+                        
+                        newImages.append(image)
+                    }
+                    
+                    // 4. Update the binding so the parent View (EditorView) receives the images
+                    self.renderedImages = newImages
+                    
+                    // Optional: Print debug info
+                    print("onDisappear: Rendered \(newImages.count) pages.")
                 self.onChange?(newValue)
             }
             .onChange(of: layers) { oldValue, newValue in
