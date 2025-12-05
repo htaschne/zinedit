@@ -26,6 +26,7 @@ public struct EditorCanvasView: View {
     private let onExport: ((UIImage) -> Void)?
     private let onExportPDF: ((Data) -> Void)?
     private let onChange: (([EditorLayer]) -> Void)?
+    @Binding public var renderedImages: [UIImage]
 
     @StateObject private var model = EditorModel()
     @Environment(\.undoManager) private var undoManager
@@ -44,11 +45,13 @@ public struct EditorCanvasView: View {
     @State private var isLoadingPhoto: Bool = false
 
     // Pagination: always 8 pages
-    @State private var pages: [[EditorLayer]] = Array(repeating: [], count: 8)
+    @Binding private var pages: [[EditorLayer]]
     @State private var currentPage: Int = 0
 
     public init(
         layers: Binding<[EditorLayer]>,
+        pages: Binding<[[EditorLayer]]>,
+        images: Binding<[UIImage]>,
         config: EditorConfig = .init(),
         onExport: ((UIImage) -> Void)? = nil,
         onExportPDF: ((Data) -> Void)? = nil,
@@ -59,16 +62,21 @@ public struct EditorCanvasView: View {
         self.onExport = onExport
         self.onExportPDF = onExportPDF
         self.onChange = onChange
+        self._pages = pages
+        self._renderedImages = images
     }
 
     public init(
         restoredLayers: [EditorLayer],
+        images: Binding<[UIImage]>,
         config: EditorConfig = .init(),
         onExport: ((UIImage) -> Void)? = nil,
         onExportPDF: ((Data) -> Void)? = nil,
         onChange: (([EditorLayer]) -> Void)? = nil
     ) {
         self._layers = .constant(restoredLayers)  // one-way binding; use onChange to persist changes
+        self._renderedImages = images
+        self._pages = .constant(Array(repeating: restoredLayers, count: 8))
         self.config = config
         self.onExport = onExport
         self.onExportPDF = onExportPDF
@@ -771,13 +779,15 @@ public struct ImageModel: Equatable, Codable {
 
 // MARK: - Preview
 #Preview {
-    PreviewHost()
+    PreviewHost(images: [])
 }
 
 struct PreviewHost: View {
     @State var layers: [EditorLayer] = []
+    @State var pages: [[EditorLayer]] = Array(repeating: [], count: 8)
+    @State var images: [UIImage]
     var body: some View {
-        EditorCanvasView(layers: $layers)
+        EditorCanvasView(layers: $layers, pages: $pages, images: $images)
     }
 }
 
