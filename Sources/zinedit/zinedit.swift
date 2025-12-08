@@ -291,6 +291,7 @@ public struct EditorCanvasView: View {
                     .padding(.horizontal, 16)
                 }
             }
+            .background(Color(.white))
             .onDisappear() {
                 var newImages: [UIImage] = []
                     
