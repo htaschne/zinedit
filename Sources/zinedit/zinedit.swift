@@ -534,9 +534,7 @@ public struct EditorCanvasView: View {
                 }
             }
             .onChange(of: showTextSheet) {_, newValue in
-                if newValue == false {
                     handleUpdate()
-                }
             }
             .onChange(of: layers) { oldValue, newValue in
                 if model.layers != newValue {
