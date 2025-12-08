@@ -448,7 +448,8 @@ public struct EditorCanvasView: View {
                 if let $layer = selectedTextBinding {
                     TextEditSheet(
                         layer: $layer,
-                        onApply: { model.registerUndoPoint() }
+                        show: $showTextSheet,
+                        onApply: { model.registerUndoPoint() },
                     )
                 }
             }

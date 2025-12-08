@@ -13,6 +13,7 @@ import SwiftUI
 
 struct TextEditSheet: View {
     @Binding var layer: EditorLayer
+    @Binding var show: Bool
     @State private var text: String = ""
     @State private var fontSize: Double = 28
     @State private var isBold = false
@@ -308,7 +309,10 @@ struct TextEditSheet: View {
                     .accessibilityIdentifier("applyTextButton")
                 }
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel") {
+                        dismiss()
+                        show = false
+                    }
                         .accessibilityIdentifier("cancelTextButton")
                 }
             })
