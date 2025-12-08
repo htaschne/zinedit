@@ -304,14 +304,15 @@ struct TextEditSheet: View {
                                 isItalic: isItalic
                             )
                         )
+                        show = false
                         dismiss()
                     }
                     .accessibilityIdentifier("applyTextButton")
                 }
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
-                        dismiss()
                         show = false
+                        dismiss()
                     }
                         .accessibilityIdentifier("cancelTextButton")
                 }
