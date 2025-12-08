@@ -2,6 +2,8 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 import PhotosUI
 import SwiftUI
+import Combine
+
 
 // Paint support
 #if canImport(PencilKit)
@@ -526,18 +528,45 @@ public struct EditorCanvasView: View {
                     print("onDisappear: Rendered \(newImages.count) pages.")
                 self.onChange?(newValue)
             }
+            .onChange(of: showDrawingSheet) {_, newValue in
+                if newValue == false {
+                    handleUpdate()
+                }
+            }
             .onChange(of: layers) { oldValue, newValue in
                 if model.layers != newValue {
                     model.layers = newValue
                 }
                 pages[currentPage] = newValue
             }
+            
         }
+
     }
 
     private func bindingForLayer(_ id: UUID) -> Binding<EditorLayer>? {
         guard let index = model.indexOfLayer(id) else { return nil }
         return $model.layers[index]
+    }
+    
+    private func handleUpdate() {
+        let newValue = model.layers
+
+        pages[currentPage] = newValue
+        self.layers = newValue
+
+        var newImages: [UIImage] = []
+
+        for pageLayers in pages {
+            let image = EditorRenderer.renderImage(
+                layers: pageLayers,
+                size: config.exportSize
+            )
+            newImages.append(image)
+        }
+
+        self.renderedImages = newImages
+        self.onChange?(newValue)
     }
 
     private func export() {
