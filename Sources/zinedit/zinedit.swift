@@ -584,9 +584,22 @@ public struct EditorCanvasView: View {
             self.layers = newValue
 
             // só dispara depois de atualizar layers e páginas
-            snapshotTrigger.toggle()
+            //snapshotTrigger.toggle()
+        
+            
 
             self.onChange?(newValue)
+        
+        Task {
+            @MainActor in
+                var images: [UIImage] = []
+                for page in pages {
+                    let img = await snapshotOfPage(page)
+                    images.append(img)
+                }
+                self.renderedImages = images
+            }
+        
 //        let newValue = model.layers
 //
 //        pages[currentPage] = newValue
