@@ -587,18 +587,12 @@ public struct EditorCanvasView: View {
             //snapshotTrigger.toggle()
         
             
-
-            self.onChange?(newValue)
-        
-        Task {
-            @MainActor in
-                var images: [UIImage] = []
-                for page in pages {
-                    let img = await snapshotOfPage(page)
-                    images.append(img)
-                }
-                self.renderedImages = images
+        for page in pages {
+            Task {
+                await snapshotOfPage(page)
             }
+        }
+            self.onChange?(newValue)
         
 //        let newValue = model.layers
 //
@@ -619,7 +613,6 @@ public struct EditorCanvasView: View {
 //        self.onChange?(newValue)
     }
     
-    @MainActor
     private func snapshotOfPage(_ pageLayers: [EditorLayer]) async -> UIImage {
         await withCheckedContinuation { continuation in
             
@@ -643,19 +636,7 @@ public struct EditorCanvasView: View {
             window.isHidden = false
 
             // trigger snapshot
-           // trigger.toggle()
-            
-            DispatchQueue.main.async {
-                       trigger.toggle()
-                   }
-
-                   // 5. Timer de fallback (garantia)
-                   DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                       // se a continuation ainda não foi chamada, chamamos com fallback
-                       if !Task.isCancelled {
-                           continuation.resume(returning: UIImage())
-                       }
-                   }
+           trigger.toggle()
         }
     }
 
