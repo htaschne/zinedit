@@ -308,28 +308,15 @@ public struct EditorCanvasView: View {
             }
             .background(Color(.white))
             .onDisappear() {
-                var newImages: [UIImage] = []
-                    
-                    // 2. Iterate through all pages (the 'pages' binding holds [[EditorLayer]])
-                    for pageLayers in pages {
-                        
-                        // 3. Render each page using the specific Zine render logic
-                        // We use the config.exportSize to ensure high resolution (e.g. 1080x1920)
-                        // rather than the screen size.
-                        let image = EditorRenderer.renderImage(
-                            layers: pageLayers,
-                            size: config.exportSize
-                        )
-                        
-                        newImages.append(image)
+                Task {
+                    @MainActor in
+                        var images: [UIImage] = []
+                        for page in pages {
+                            let img = await snapshotOfPage(page)
+                            images.append(img)
+                        }
+                        self.renderedImages = images
                     }
-                    
-                    // 4. Update the binding so the parent View (EditorView) receives the images
-                    self.renderedImages = newImages
-                    
-                    // Optional: Print debug info
-                    print("onDisappear: Rendered \(newImages.count) pages.")
-                
             }
             .toolbar(content: {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
@@ -599,6 +586,34 @@ public struct EditorCanvasView: View {
 //
 //        self.renderedImages = newImages
 //        self.onChange?(newValue)
+    }
+    
+    @MainActor
+    private func snapshotOfPage(_ pageLayers: [EditorLayer]) async -> UIImage {
+        await withCheckedContinuation { continuation in
+            
+            var trigger = false
+            
+            let view = EditorCanvasSnapshotView(
+                layers: pageLayers,
+                canvasSize: config.exportSize,
+                selection: nil
+            )
+            .snapshot(trigger) { image in
+                continuation.resume(returning: image ?? UIImage())
+            }
+
+            // Mount offscreen
+            let host = UIHostingController(rootView: view)
+            host.view.frame = CGRect(origin: .zero, size: config.exportSize)
+
+            let window = UIWindow(frame: host.view.frame)
+            window.rootViewController = host
+            window.isHidden = false
+
+            // trigger snapshot
+            trigger.toggle()
+        }
     }
 
     private func export() {
