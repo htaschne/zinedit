@@ -637,7 +637,7 @@ public struct EditorCanvasView: View {
                    }
 
                    // 5. Timer de fallback (garantia)
-                   DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                   DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                        // se a continuation ainda não foi chamada, chamamos com fallback
                        if !Task.isCancelled {
                            continuation.resume(returning: UIImage())
