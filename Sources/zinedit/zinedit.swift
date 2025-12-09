@@ -630,7 +630,19 @@ public struct EditorCanvasView: View {
             window.isHidden = false
 
             // trigger snapshot
-            trigger.toggle()
+           // trigger.toggle()
+            
+            DispatchQueue.main.async {
+                       trigger.toggle()
+                   }
+
+                   // 5. Timer de fallback (garantia)
+                   DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                       // se a continuation ainda não foi chamada, chamamos com fallback
+                       if !Task.isCancelled {
+                           continuation.resume(returning: UIImage())
+                       }
+                   }
         }
     }
 
