@@ -616,7 +616,7 @@ public struct EditorCanvasView: View {
     private func snapshotOfPage(_ pageLayers: [EditorLayer]) async -> UIImage {
         await withCheckedContinuation { continuation in
             
-            var trigger = false
+            var trigger = true
             
             let view = EditorCanvasSnapshotView(
                 layers: pageLayers,
