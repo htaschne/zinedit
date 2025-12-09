@@ -334,7 +334,6 @@ public struct EditorCanvasView: View {
                     } label: {
                         Image(systemName: "chevron.left")
                     }
-                    .disabled(!model.canUndo)
                     .accessibilityIdentifier("undoTopButton")
                 }
                 
