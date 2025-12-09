@@ -180,6 +180,7 @@ public struct EditorCanvasView: View {
                             if let image = image {
                                 // Salva no array de imagens do caller
                                 self.renderedImages[currentPage] = image
+                                self.snapshotTrigger.toggle()
                             }
                         }
                         .clipShape(
