@@ -688,6 +688,9 @@ public enum EditorRenderer {
                 }
                 .frame(width: size.width, height: size.height)
         )
+        
+        renderer.scale = 3.0
+        
         return renderer.uiImage ?? UIImage()
     }
 }
