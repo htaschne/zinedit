@@ -28,7 +28,9 @@ public struct EditorCanvasView: View {
     private let onExport: ((UIImage) -> Void)?
     private let onExportPDF: ((Data) -> Void)?
     private let onChange: (([EditorLayer]) -> Void)?
+    
     @Binding public var renderedImages: [UIImage]
+    @State private var snapshotTrigger: Bool = false
 
     @StateObject private var model = EditorModel()
     @Environment(\.undoManager) private var undoManager
@@ -174,6 +176,12 @@ public struct EditorCanvasView: View {
                         }
                         // Exact canvas size & centered position with margins respected
                         .frame(width: canvas.width, height: canvas.height)
+                        .snapshot(snapshotTrigger) { image in
+                            if let image = image {
+                                // Salva no array de imagens do caller
+                                self.renderedImages[currentPage] = image
+                            }
+                        }
                         .clipShape(
                             RoundedRectangle(
                                 cornerRadius: 12,
@@ -505,28 +513,33 @@ public struct EditorCanvasView: View {
             }
             .onChange(of: model.layers) { _, newValue in
                 pages[currentPage] = newValue
+                handleUpdate()
                 self.layers = newValue  // keep host in sync with the current page
-                var newImages: [UIImage] = []
+                //var newImages: [UIImage] = []
                     
                     // 2. Iterate through all pages (the 'pages' binding holds [[EditorLayer]])
                     for pageLayers in pages {
                         
+                        
                         // 3. Render each page using the specific Zine render logic
                         // We use the config.exportSize to ensure high resolution (e.g. 1080x1920)
                         // rather than the screen size.
-                        let image = EditorRenderer.renderImage(
-                            layers: pageLayers,
-                            size: config.exportSize
-                        )
+//                        let image = EditorRenderer.renderImage(
+//                            layers: pageLayers,
+//                            size: config.exportSize
+//                        )
+                        //let img = SnapshotRenderer.render(pageView, size: config.exportSize)
+                        //newImages.append(img)
                         
-                        newImages.append(image)
+                        
+                        
                     }
                     
                     // 4. Update the binding so the parent View (EditorView) receives the images
-                    self.renderedImages = newImages
+                    //self.renderedImages = newImages
                     
                     // Optional: Print debug info
-                    print("onDisappear: Rendered \(newImages.count) pages.")
+                    //print("onDisappear: Rendered \(newImages.count) pages.")
                 self.onChange?(newValue)
             }
             .onChange(of: showDrawingSheet) {_, newValue in
@@ -554,23 +567,33 @@ public struct EditorCanvasView: View {
     }
     
     private func handleUpdate() {
+        
         let newValue = model.layers
 
-        pages[currentPage] = newValue
-        self.layers = newValue
+            pages[currentPage] = newValue
+            self.layers = newValue
 
-        var newImages: [UIImage] = []
+            // só dispara depois de atualizar layers e páginas
+            snapshotTrigger.toggle()
 
-        for pageLayers in pages {
-            let image = EditorRenderer.renderImage(
-                layers: pageLayers,
-                size: config.exportSize
-            )
-            newImages.append(image)
-        }
-
-        self.renderedImages = newImages
-        self.onChange?(newValue)
+            self.onChange?(newValue)
+//        let newValue = model.layers
+//
+//        pages[currentPage] = newValue
+//        self.layers = newValue
+//
+//        var newImages: [UIImage] = []
+//
+//        for pageLayers in pages {
+//            let image = EditorRenderer.renderImage(
+//                layers: pageLayers,
+//                size: config.exportSize
+//            )
+//            newImages.append(image)
+//        }
+//
+//        self.renderedImages = newImages
+//        self.onChange?(newValue)
     }
 
     private func export() {
@@ -681,7 +704,7 @@ public enum EditorRenderer {
         let renderer = ImageRenderer(
             content:
                 ZStack {
-                    Color.clear
+                    Color.white
                     ForEach(layers.filter { !$0.isHidden }) { layer in
                         LayerRenderView(layer: layer)
                     }
@@ -689,11 +712,33 @@ public enum EditorRenderer {
                 .frame(width: size.width, height: size.height)
         )
         
-        renderer.scale = 100.0
+        renderer.scale = 5.0
         
         return renderer.uiImage ?? UIImage()
     }
 }
+
+struct SnapshotRenderer {
+    @MainActor
+    static func render<V: View>(_ view: V, size: CGSize) -> UIImage {
+        let controller = UIHostingController(rootView:
+            view
+                .frame(width: size.width, height: size.height)
+        )
+        
+        let targetSize = controller.view.intrinsicContentSize
+        controller.view.bounds = CGRect(origin: .zero, size: targetSize)
+        controller.view.backgroundColor = .clear
+        
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        
+        return renderer.image { _ in
+            controller.view.drawHierarchy(in: controller.view.bounds, afterScreenUpdates: true)
+        }
+    }
+}
+
+
 
 public struct EditorLayer: Identifiable, Equatable, Codable {
 
