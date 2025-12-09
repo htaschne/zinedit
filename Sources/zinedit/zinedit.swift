@@ -587,11 +587,6 @@ public struct EditorCanvasView: View {
             //snapshotTrigger.toggle()
         
             
-        for page in pages {
-            Task {
-                await snapshotOfPage(page)
-            }
-        }
             self.onChange?(newValue)
         
 //        let newValue = model.layers
@@ -616,7 +611,7 @@ public struct EditorCanvasView: View {
     private func snapshotOfPage(_ pageLayers: [EditorLayer]) async -> UIImage {
         await withCheckedContinuation { continuation in
             
-            var trigger = true
+            var trigger = false
             
             let view = EditorCanvasSnapshotView(
                 layers: pageLayers,
@@ -756,7 +751,7 @@ public enum EditorRenderer {
                 .frame(width: size.width, height: size.height)
         )
         
-        renderer.scale = 5.0
+        renderer.scale = 1.0
         
         return renderer.uiImage ?? UIImage()
     }
