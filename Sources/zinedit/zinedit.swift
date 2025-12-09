@@ -179,8 +179,12 @@ public struct EditorCanvasView: View {
                         .snapshot(snapshotTrigger) { image in
                             if let image = image {
                                 // Salva no array de imagens do caller
+                                let temp = self.model.selection
+                                self.model.selection = nil
                                 self.renderedImages[currentPage] = image
                                 self.snapshotTrigger.toggle()
+                                
+                                self.model.selection = temp
                             }
                         }
                         .clipShape(
