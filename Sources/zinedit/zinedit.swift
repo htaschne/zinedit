@@ -319,6 +319,25 @@ public struct EditorCanvasView: View {
                     }
             }
             .toolbar(content: {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        Task {
+                            @MainActor in
+                                var images: [UIImage] = []
+                                for page in pages {
+                                    let img = await snapshotOfPage(page)
+                                    images.append(img)
+                                }
+                                self.renderedImages = images
+                            }
+                        Haptics.medium()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                    }
+                    .disabled(!model.canUndo)
+                    .accessibilityIdentifier("undoTopButton")
+                }
+                
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button {
                         Haptics.medium()
