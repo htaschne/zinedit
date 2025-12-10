@@ -693,11 +693,11 @@ public enum EditorRenderer {
                     ForEach(layers.filter { !$0.isHidden }) { layer in
                         LayerRenderView(layer: layer)
                             //.scaleEffect(layer.scale)
-                                .rotationEffect(layer.rotation)
-                                .offset(
-                                    x: layer.position.x,
-                                    y: layer.position.y
-                                )
+                                //.rotationEffect(layer.rotation)
+//                                .offset(
+//                                    x: layer.position.x,
+//                                    y: layer.position.y
+//                                )
                     }
                 }
                 .frame(width: canvasSize.width, height: canvasSize.height)
