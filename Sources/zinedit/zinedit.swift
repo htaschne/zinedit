@@ -681,13 +681,14 @@ public enum EditorRenderer {
         let renderer = ImageRenderer(
             content:
                 ZStack {
-                    Color.clear
+                    Color.white
                     ForEach(layers.filter { !$0.isHidden }) { layer in
                         LayerRenderView(layer: layer)
                     }
                 }
                 .frame(width: size.width, height: size.height)
         )
+        renderer.scale = 2.0
         return renderer.uiImage ?? UIImage()
     }
 }
