@@ -305,7 +305,8 @@ public struct EditorCanvasView: View {
                         // rather than the screen size.
                         let image = EditorRenderer.renderImage(
                             layers: pageLayers,
-                            size: config.exportSize
+                            canvasSize: self.canvasSize,
+                            exportSize: config.exportSize
                         )
                         
                         newImages.append(image)
@@ -516,7 +517,8 @@ public struct EditorCanvasView: View {
                         // rather than the screen size.
                         let image = EditorRenderer.renderImage(
                             layers: pageLayers,
-                            size: config.exportSize
+                            canvasSize: self.canvasSize,
+                            exportSize: config.exportSize
                         )
                         
                         newImages.append(image)
@@ -564,7 +566,8 @@ public struct EditorCanvasView: View {
         for pageLayers in pages {
             let image = EditorRenderer.renderImage(
                 layers: pageLayers,
-                size: config.exportSize
+                canvasSize: canvasSize,
+                exportSize: config.exportSize
             )
             newImages.append(image)
         }
@@ -576,7 +579,8 @@ public struct EditorCanvasView: View {
     private func export() {
         let image = EditorRenderer.renderImage(
             layers: model.layers,
-            size: config.exportSize
+            canvasSize: canvasSize,
+            exportSize: config.exportSize
         )
         onExport?(image)
     }
@@ -589,7 +593,8 @@ public struct EditorCanvasView: View {
                 ctx.beginPage()
                 let img = EditorRenderer.renderImage(
                     layers: pages[i],
-                    size: config.exportSize
+                    canvasSize: canvasSize,
+                    exportSize: config.exportSize
                 )
                 img.draw(in: rect)
             }
@@ -600,7 +605,8 @@ public struct EditorCanvasView: View {
         if let onExport = onExport {
             let current = EditorRenderer.renderImage(
                 layers: pages[currentPage],
-                size: config.exportSize
+                canvasSize: self.canvasSize,
+                exportSize: config.exportSize
             )
             onExport(current)
         }
@@ -676,8 +682,10 @@ public struct DrawingModel: Equatable, Codable {
 public enum EditorRenderer {
     @MainActor public static func renderImage(
         layers: [EditorLayer],
-        size: CGSize
+        canvasSize: CGSize,
+        exportSize: CGSize
     ) -> UIImage {
+        let scaleFactor = exportSize.width / canvasSize.width
         let renderer = ImageRenderer(
             content:
                 ZStack {
@@ -687,7 +695,9 @@ public enum EditorRenderer {
                             .scaleEffect(5)
                     }
                 }
-                .frame(width: size.width, height: size.height)
+                .frame(width: canvasSize.width, height: canvasSize.height)
+                        .scaleEffect(scaleFactor)   // ⭐ AQUI ESTÁ A MAGIA ⭐
+                        .frame(width: exportSize.width, height: exportSize.height)
         )
         renderer.scale = 2.0
         return renderer.uiImage ?? UIImage()
