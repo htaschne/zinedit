@@ -684,6 +684,7 @@ public enum EditorRenderer {
                     Color.white
                     ForEach(layers.filter { !$0.isHidden }) { layer in
                         LayerRenderView(layer: layer)
+                            .scaleEffect(2)
                     }
                 }
                 .frame(width: size.width, height: size.height)
