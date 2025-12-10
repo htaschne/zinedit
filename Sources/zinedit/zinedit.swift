@@ -24,6 +24,8 @@ enum Haptics {
 // MARK: - Public API
 public struct EditorCanvasView: View {
     @Binding public var layers: [EditorLayer]
+    @Binding public var pages: [[EditorLayer]]
+
     private let config: EditorConfig
     private let onExport: ((UIImage) -> Void)?
     private let onExportPDF: ((Data) -> Void)?
@@ -47,7 +49,6 @@ public struct EditorCanvasView: View {
     @State private var isLoadingPhoto: Bool = false
 
     // Pagination: always 8 pages
-    @Binding private var pages: [[EditorLayer]]
     @State private var currentPage: Int = 0
 
     public init(
@@ -121,6 +122,7 @@ public struct EditorCanvasView: View {
                                         layer: $layer,
                                         onBeginInteraction: {
                                             model.registerUndoPoint()
+                                            handleUpdate()
                                         }
                                     )
                                     .onTapGesture { model.select(layer.id) }
