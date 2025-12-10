@@ -698,7 +698,7 @@ public enum EditorRenderer {
                         .scaleEffect(scaleFactor)   // ⭐ AQUI ESTÁ A MAGIA ⭐
                         .frame(width: exportSize.width, height: exportSize.height)
         )
-
+        renderer.scale = 1.0
         return renderer.uiImage ?? UIImage()
     }
 }
