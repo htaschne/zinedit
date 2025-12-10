@@ -684,12 +684,12 @@ public enum EditorRenderer {
                     Color.white
                     ForEach(layers.filter { !$0.isHidden }) { layer in
                         LayerRenderView(layer: layer)
-                            .scaleEffect(2)
+                            .scaleEffect(5)
                     }
                 }
                 .frame(width: size.width, height: size.height)
         )
-        renderer.scale = 5.0
+        renderer.scale = 2.0
         return renderer.uiImage ?? UIImage()
     }
 }
