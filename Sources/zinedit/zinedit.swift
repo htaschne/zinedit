@@ -35,6 +35,7 @@ public struct EditorCanvasView: View {
     @StateObject private var model = EditorModel()
     @Environment(\.undoManager) private var undoManager
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.dismiss) private var dismiss
 
     @State private var showTextSheet = false
     #if canImport(PencilKit)
@@ -322,6 +323,14 @@ public struct EditorCanvasView: View {
                 
             }
             .toolbar(content: {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                    }
+                }
+                
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button {
                         Haptics.medium()
