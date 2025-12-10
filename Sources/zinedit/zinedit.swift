@@ -692,14 +692,13 @@ public enum EditorRenderer {
                     Color.white
                     ForEach(layers.filter { !$0.isHidden }) { layer in
                         LayerRenderView(layer: layer)
-                            .scaleEffect(5)
                     }
                 }
                 .frame(width: canvasSize.width, height: canvasSize.height)
                         .scaleEffect(scaleFactor)   // ⭐ AQUI ESTÁ A MAGIA ⭐
                         .frame(width: exportSize.width, height: exportSize.height)
         )
-        //renderer.scale = 2.0
+
         return renderer.uiImage ?? UIImage()
     }
 }
