@@ -316,7 +316,7 @@ public struct EditorCanvasView: View {
                     
                     // 4. Update the binding so the parent View (EditorView) receives the images
                     self.renderedImages = newImages
-                    
+                    handleUpdate()
                     // Optional: Print debug info
                     print("onDisappear: Rendered \(newImages.count) pages.")
                 
