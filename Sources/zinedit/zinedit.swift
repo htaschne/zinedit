@@ -702,7 +702,7 @@ public enum EditorRenderer {
                 }
                 .frame(width: canvasSize.width, height: canvasSize.height)
                 .scaleEffect(scaleFactor)
-                //.frame(width: exportSize.width, height: exportSize.height)
+                .frame(width: exportSize.width, height: exportSize.height)
         )
         renderer.scale = 1.0
         return renderer.uiImage ?? UIImage()
