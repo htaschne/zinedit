@@ -558,6 +558,9 @@ public struct EditorCanvasView: View {
             }
             
         }
+        .navigationBarHidden(true)     // <- coloque aqui
+            .toolbar(.hidden)               // <- opcional, mas costuma ser necessário
+            .ignoresSafeArea()
 
     }
 
